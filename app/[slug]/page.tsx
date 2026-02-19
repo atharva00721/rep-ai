@@ -1,9 +1,23 @@
+import { notFound } from "next/navigation";
+
 interface PublicAIPageProps {
   params: Promise<{ slug: string }>;
 }
 
+function isValidSlug(slug: string): boolean {
+  // Allow alphanumeric characters and hyphens only
+  // Must start and end with alphanumeric character
+  const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
+  return slugPattern.test(slug) && slug.length > 0 && slug.length <= 100;
+}
+
 export default async function PublicAIPage({ params }: PublicAIPageProps) {
   const { slug } = await params;
+
+  // Validate slug format
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
 
   return (
     <main className="mx-auto max-w-3xl p-10">
