@@ -8,7 +8,7 @@ function isValidSlug(slug: string): boolean {
   // Allow alphanumeric characters and hyphens only
   // Must start and end with alphanumeric character
   const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
-  return slugPattern.test(slug) && slug.length > 0 && slug.length <= 100;
+  return slugPattern.test(slug) && slug.length <= 100;
 }
 
 export default async function PublicAIPage({ params }: PublicAIPageProps) {
