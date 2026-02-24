@@ -28,6 +28,7 @@ import { parsePublicChatRequest } from "@/lib/validation/public-chat";
 import { trackAnalytics } from "@/lib/db/analytics";
 import { consumeCredits, getCredits } from "@/lib/credits";
 import { requireUserId } from "@/lib/api/route-helpers";
+import { getOrCreateChatSession, createChatMessage } from "@/lib/db/chat-sessions";
 
 const CREDIT_COST = 1;
 
@@ -67,7 +68,16 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+    let body: Record<string, unknown> | null = null;
+    const contentType = request.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      try {
+        const text = await request.text();
+        body = text?.trim() ? (JSON.parse(text) as Record<string, unknown>) : null;
+      } catch {
+        body = null;
+      }
+    }
     const parsed = parsePublicChatRequest(body);
     if (!parsed) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -158,9 +168,62 @@ export async function POST(request: Request) {
     const leadDetected =
       strategyMode !== "passive" && result.lead.lead_detected && result.lead.confidence >= threshold;
 
+    const sessionId = parsed.sessionId || crypto.randomUUID();
+    const isFirstMessage = !parsed.history || parsed.history.length === 0;
+    
+    let chatSessionDbId = null;
+    if (isFirstMessage) {
+      await trackAnalytics({
+        portfolioId: portfolio.id,
+        type: "chat_session_start",
+        sessionId,
+      });
+      
+      const chatSession = await getOrCreateChatSession({
+        portfolioId: portfolio.id,
+        sessionId,
+        visitorId: ip,
+        country: undefined,
+        deviceInfo: request.headers.get("user-agent") || undefined,
+      });
+      chatSessionDbId = chatSession.id;
+    } else {
+      const existingSession = await getOrCreateChatSession({
+        portfolioId: portfolio.id,
+        sessionId,
+        visitorId: ip,
+        country: undefined,
+        deviceInfo: request.headers.get("user-agent") || undefined,
+      });
+      chatSessionDbId = existingSession.id;
+    }
+
+    if (chatSessionDbId) {
+      await createChatMessage({
+        sessionId: chatSessionDbId,
+        role: "user",
+        content: parsed.message,
+        isFromVisitor: true,
+      });
+
+      await createChatMessage({
+        sessionId: chatSessionDbId,
+        role: "assistant",
+        content: result.reply,
+        isFromVisitor: false,
+      });
+    }
+    
+    await trackAnalytics({
+      portfolioId: portfolio.id,
+      type: "chat_message",
+      sessionId,
+    });
+
     if (leadDetected) {
       const dedupeResult = await saveLeadWithDedup({
         portfolioId: portfolio.id,
+        sessionId: chatSessionDbId || undefined,
         name: result.lead.lead_data?.name?.trim() || null,
         email: result.lead.lead_data?.email?.trim() || null,
         budget: result.lead.lead_data?.budget?.trim() || null,
@@ -195,23 +258,6 @@ export async function POST(request: Request) {
       leadDetected,
       confidence: result.lead.confidence,
       errorType: result.errorType,
-    });
-
-    const sessionId = parsed.sessionId || crypto.randomUUID();
-    const isFirstMessage = !parsed.history || parsed.history.length === 0;
-    
-    if (isFirstMessage) {
-      await trackAnalytics({
-        portfolioId: portfolio.id,
-        type: "chat_session_start",
-        sessionId,
-      });
-    }
-    
-    await trackAnalytics({
-      portfolioId: portfolio.id,
-      type: "chat_message",
-      sessionId,
     });
 
     return NextResponse.json({ reply: result.reply, leadDetected, sessionId }, { headers: getCorsHeaders(request) });

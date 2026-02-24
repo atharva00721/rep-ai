@@ -3,35 +3,35 @@ import { auth } from "@/auth";
 import { AppSidebar } from "./app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { getProfileById } from "@/lib/db";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("[auth][error] auth() failed:", error);
+    redirect("/auth/signin");
+  }
 
   if (!session?.user) {
     redirect("/auth/signin");
   }
 
-  const profile = await getProfileById(session.user.id);
-
   return (
     <SidebarProvider>
-      <AppSidebar 
-        credits={profile?.credits ?? 0} 
-        userName={profile?.name ?? "User"}
-        userEmail={session.user.email ?? ""}
-        userImage={profile?.image}
-      />
+      <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex flex-1 items-center justify-between">
-            
+            <h1 className="text-sm font-medium leading-none">
+              AI Portfolio Platform
+            </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground hidden sm:inline-block">
                 {session.user.email}

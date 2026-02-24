@@ -31,6 +31,7 @@ import {
   BarChart3,
   Coins,
   User,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -68,6 +69,11 @@ const navigation = [
     title: "Analytics",
     url: "/dashboard/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "Chats",
+    url: "/dashboard/chats",
+    icon: MessageSquare,
   },
   {
     title: "Knowledge",

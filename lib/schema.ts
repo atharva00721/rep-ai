@@ -152,6 +152,7 @@ export const agentLeads = pgTable("agent_leads", {
   portfolioId: uuid("portfolio_id")
     .notNull()
     .references(() => portfolios.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id"),
   name: text("name"),
   email: text("email"),
   budget: text("budget"),
@@ -166,6 +167,7 @@ export const agentLeads = pgTable("agent_leads", {
     "agent_leads_status_check",
     sql`${table.status} IN ('new', 'contacted', 'closed')`
   ),
+  index("agent_leads_session_id_idx").on(table.sessionId),
 ]);
 
 export const knowledgeSources = pgTable(
@@ -225,5 +227,46 @@ export const portfolioAnalytics = pgTable(
     index("portfolio_analytics_portfolio_id_idx").on(table.portfolioId),
     index("portfolio_analytics_created_at_idx").on(table.createdAt),
     check("portfolio_analytics_type_check", sql`${table.type} IN ('page_view', 'chat_session_start', 'chat_message')`),
+  ]
+);
+
+export const chatSessions = pgTable(
+  "chat_sessions",
+  {
+    id: uuid("id").primaryKey(),
+    portfolioId: uuid("portfolio_id")
+      .notNull()
+      .references(() => portfolios.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id").notNull(),
+    visitorId: text("visitor_id"),
+    country: varchar("country", { length: 2 }),
+    deviceInfo: text("device_info"),
+    startedAt: timestamp("started_at", { mode: "date" }).notNull().defaultNow(),
+    lastMessageAt: timestamp("last_message_at", { mode: "date" }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { mode: "date" }),
+  },
+  (table) => [
+    index("chat_sessions_portfolio_id_idx").on(table.portfolioId),
+    index("chat_sessions_session_id_idx").on(table.sessionId),
+    index("chat_sessions_started_at_idx").on(table.startedAt),
+  ]
+);
+
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => chatSessions.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 20 }).notNull(),
+    content: text("content").notNull(),
+    isFromVisitor: boolean("is_from_visitor").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("chat_messages_session_id_idx").on(table.sessionId),
+    index("chat_messages_created_at_idx").on(table.createdAt),
+    check("chat_messages_role_check", sql`${table.role} IN ('user', 'assistant')`),
   ]
 );

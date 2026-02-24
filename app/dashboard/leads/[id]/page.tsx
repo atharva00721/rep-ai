@@ -63,6 +63,7 @@ export default async function LeadDetailPage({
       projectDetails: lead.projectDetails,
     }),
     timeline: extractTimeline(lead.projectDetails),
+    sessionId: lead.sessionId,
   }
 
   return <LeadDetailClient lead={formattedLead} />

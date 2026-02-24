@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -56,6 +56,12 @@ export function LeadDetailClient({ lead: initialLead }: { lead: LeadDetailData }
           <ArrowLeft className="size-4 mr-2" />
           Back
         </Button>
+        {lead.sessionId && (
+          <Button variant="outline" onClick={() => router.push(`/dashboard/chats?sessionId=${lead.sessionId}`)}>
+            <MessageSquare className="size-4 mr-2" />
+            View Chat
+          </Button>
+        )}
       </div>
 
       <div className="h-[75vh] md:h-full">

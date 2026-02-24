@@ -4,6 +4,7 @@ import { agentLeads } from "@/lib/schema";
 
 interface SaveLeadInput {
   portfolioId: string;
+  sessionId?: string;
   name: string | null;
   email: string | null;
   budget: string | null;
@@ -92,6 +93,7 @@ export async function saveLeadWithDedup(input: SaveLeadInput): Promise<"inserted
   await db.insert(agentLeads).values({
     id: crypto.randomUUID(),
     portfolioId: input.portfolioId,
+    sessionId: input.sessionId ? input.sessionId : null,
     name: input.name,
     email: normalizedEmail,
     budget: input.budget,
