@@ -1,4 +1,4 @@
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, sql, inArray, asc, isNotNull } from "drizzle-orm";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { chatSessions, chatMessages, agentLeads } from "@/lib/schema";
@@ -57,17 +57,22 @@ export async function createChatMessage(input: CreateChatMessageInput) {
   return message;
 }
 
-export async function getChatSessionBySessionId(sessionId: string) {
+export async function getChatSessionByPortfolioAndSessionId(
+  portfolioId: string,
+  sessionId: string
+) {
   const [session] = await db
     .select()
     .from(chatSessions)
-    .where(eq(chatSessions.sessionId, sessionId))
+    .where(
+      sql`${chatSessions.portfolioId} = ${portfolioId} and ${chatSessions.sessionId} = ${sessionId}`
+    )
     .limit(1);
   return session || null;
 }
 
 export async function getOrCreateChatSession(input: CreateChatSessionInput) {
-  const existing = await getChatSessionBySessionId(input.sessionId);
+  const existing = await getChatSessionByPortfolioAndSessionId(input.portfolioId, input.sessionId);
   if (existing) {
     return existing;
   }
@@ -99,29 +104,62 @@ export async function getChatSessions(input: GetChatSessionsInput) {
     .limit(limit)
     .offset(offset);
 
-  const sessionsWithMessages = await Promise.all(
-    sessions.map(async (session) => {
-      const messages = await getChatMessagesBySessionId(session.id);
-      
-      const [lead] = await db
-        .select({
-          id: agentLeads.id,
-          name: agentLeads.name,
-          email: agentLeads.email,
-          status: agentLeads.status,
-          confidence: agentLeads.confidence,
-        })
-        .from(agentLeads)
-        .where(eq(agentLeads.sessionId, session.id))
-        .limit(1);
+  if (sessions.length === 0) {
+    return [];
+  }
 
-      return {
-        ...session,
-        messages,
-        lead: lead || null,
-      };
-    })
-  );
+  const sessionIds = sessions.map((session) => session.id);
+
+  const [messages, leads] = await Promise.all([
+    db
+      .select()
+      .from(chatMessages)
+      .where(inArray(chatMessages.sessionId, sessionIds))
+      .orderBy(asc(chatMessages.createdAt)),
+    db
+      .select({
+        id: agentLeads.id,
+        sessionId: agentLeads.sessionId,
+        name: agentLeads.name,
+        email: agentLeads.email,
+        status: agentLeads.status,
+        confidence: agentLeads.confidence,
+      })
+      .from(agentLeads)
+      .where(sql`${isNotNull(agentLeads.sessionId)} and ${inArray(agentLeads.sessionId, sessionIds)}`),
+  ]);
+
+  const messagesBySessionId = new Map<string, typeof messages>();
+  for (const message of messages) {
+    const current = messagesBySessionId.get(message.sessionId) ?? [];
+    current.push(message);
+    messagesBySessionId.set(message.sessionId, current);
+  }
+
+  const leadBySessionId = new Map<string, (typeof leads)[number]>();
+  for (const lead of leads) {
+    if (lead.sessionId && !leadBySessionId.has(lead.sessionId)) {
+      leadBySessionId.set(lead.sessionId, lead);
+    }
+  }
+
+  const sessionsWithMessages = sessions.map((session) => {
+    const lead = leadBySessionId.get(session.id);
+
+    return {
+      ...session,
+      messages: messagesBySessionId.get(session.id) ?? [],
+      lead: lead
+        ? {
+            id: lead.id,
+            name: lead.name,
+            email: lead.email,
+            status: lead.status,
+            confidence: lead.confidence,
+          }
+        : null,
+    };
+  });
 
   return sessionsWithMessages;
 }

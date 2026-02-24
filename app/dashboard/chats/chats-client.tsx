@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,7 @@ interface ChatMessage {
   role: string;
   content: string;
   isFromVisitor: boolean;
-  createdAt: Date;
+  createdAt: string;
 }
 
 interface ChatLead {
@@ -32,8 +32,8 @@ interface ChatSession {
   visitorId: string | null;
   country: string | null;
   deviceInfo: string | null;
-  startedAt: Date;
-  lastMessageAt: Date;
+  startedAt: string;
+  lastMessageAt: string;
   messages: ChatMessage[];
   lead: ChatLead | null;
 }
@@ -203,29 +203,27 @@ export function ChatsClient() {
   
   const [limit] = useState(20);
   const [offset, setOffset] = useState(0);
-  const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["chats", limit, offset],
     queryFn: () => fetchChats(limit, offset),
   });
 
-  useEffect(() => {
-    if (sessionIdParam && data?.sessions) {
-      const session = data.sessions.find(s => s.sessionId === sessionIdParam);
-      if (session) {
-        setSelectedSession(session);
-      }
-    }
-  }, [sessionIdParam, data]);
+  const sessions = data?.sessions ?? [];
+  const selectedSession = selectedSessionId
+    ? sessions.find((session) => session.id === selectedSessionId) ?? null
+    : sessionIdParam
+      ? sessions.find((session) => session.sessionId === sessionIdParam) ?? null
+      : null;
 
   const handlePrevious = () => {
-    setSelectedSession(null);
+    setSelectedSessionId(null);
     setOffset(Math.max(0, offset - limit));
   };
 
   const handleNext = () => {
-    setSelectedSession(null);
+    setSelectedSessionId(null);
     if (data && offset + limit < data.total) {
       setOffset(offset + limit);
     }
@@ -240,7 +238,7 @@ export function ChatsClient() {
             View conversations between visitors and your AI agent.
           </p>
         </div>
-        <ChatDetailView session={selectedSession} onBack={() => setSelectedSession(null)} />
+        <ChatDetailView session={selectedSession} onBack={() => setSelectedSessionId(null)} />
       </div>
     );
   }
@@ -278,7 +276,7 @@ export function ChatsClient() {
                 <ChatSessionCard
                   key={session.id}
                   session={session}
-                  onClick={() => setSelectedSession(session)}
+                  onClick={() => setSelectedSessionId(session.id)}
                 />
               ))}
             </div>
