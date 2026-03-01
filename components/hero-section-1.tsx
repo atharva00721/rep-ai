@@ -41,7 +41,7 @@ export default function HeroSection() {
                                     transition={{ duration: 0.5 }}
                                     className="text-balance font-serif text-4xl font-medium sm:text-5xl"
                                 >
-                                    Your 24/7 AI representative.
+                                    Your AI-powered consulting presence that books calls while you sleep.
                                 </motion.h1>
                                 <motion.p
                                     initial={{ opacity: 0, y: 20 }}
@@ -49,7 +49,7 @@ export default function HeroSection() {
                                     transition={{ duration: 0.5, delay: 0.1 }}
                                     className="text-muted-foreground mt-4 text-balance"
                                 >
-                                    Ref helps you build personal AI agents that generate leads and showcase your skills, even when you’re offline.
+                                    Launch a live consulting portfolio in 2 minutes. Import LinkedIn or your resume and let your AI rep qualify leads while you focus on delivery.
                                 </motion.p>
 
                                 <motion.div
@@ -62,7 +62,7 @@ export default function HeroSection() {
                                         className="mt-6 pr-1.5"
                                     >
                                         <Link href="/auth/signup">
-                                            <span className="text-nowrap">Start Building</span>
+                                            <span className="text-nowrap">See your portfolio in 2 minutes</span>
                                             <ChevronRight className="opacity-50" />
                                         </Link>
                                     </Button>
