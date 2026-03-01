@@ -34,7 +34,7 @@ export default function SignIn() {
         <div className="text-center">
           <h1 className="font-serif text-4xl font-medium">Welcome back</h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Sign in to your account to continue
+            See your portfolio in 2 minutes
           </p>
         </div>
         <Card className="mt-6 border p-8">
@@ -48,7 +48,7 @@ export default function SignIn() {
               const { data, error: signInError } = await authClient.signIn.email({
                 email: String(formData.get("email")),
                 password: String(formData.get("password")),
-                callbackURL: "/dashboard",
+                callbackURL: "/onboarding",
               })
               if (signInError) {
                 setError(signInError.message ?? "Invalid email or password")
@@ -56,7 +56,7 @@ export default function SignIn() {
                 return
               }
               if (data) {
-                router.push("/dashboard")
+                router.push("/onboarding")
                 router.refresh()
               }
               setLoading(false)
@@ -99,7 +99,7 @@ export default function SignIn() {
               <p className="text-destructive text-sm">{error}</p>
             ) : null}
             <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing in..." : "See my portfolio"}
             </Button>
           </form>
 
@@ -119,7 +119,7 @@ export default function SignIn() {
             onClick={() =>
               authClient.signIn.social({
                 provider: "google",
-                callbackURL: "/dashboard",
+                callbackURL: "/onboarding",
               })
             }
           >

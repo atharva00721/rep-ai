@@ -32,7 +32,7 @@ export default function SignUpPage() {
         <div className="text-center">
           <h1 className="font-serif text-4xl font-medium">Create account</h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Sign up to get started
+            See your portfolio in 2 minutes
           </p>
         </div>
         <Card className="mt-6 border p-8">
@@ -113,7 +113,7 @@ export default function SignUpPage() {
             ) : null}
 
             <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create account"}
+              {loading ? "Creating..." : "See my portfolio"}
             </Button>
           </form>
 
@@ -133,7 +133,7 @@ export default function SignUpPage() {
             onClick={() =>
               authClient.signIn.social({
                 provider: "google",
-                callbackURL: "/dashboard",
+                callbackURL: "/onboarding",
               })
             }
           >

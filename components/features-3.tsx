@@ -22,15 +22,15 @@ export default function Features() {
             <div className="@2xl:grid-cols-2 mx-auto grid max-w-3xl gap-6 px-6">
                 <div>
                     <div>
-                        <h2 className="text-balance font-serif text-4xl font-medium">Let your agent do the talking</h2>
-                        <p className="text-muted-foreground mb-6 mt-4 text-balance">Everything you need to create a personalized AI that captures your style, answers client questions, and secures new opportunities.</p>
+                        <h2 className="text-balance font-serif text-4xl font-medium">Built for independent consultants and coaches</h2>
+                        <p className="text-muted-foreground mb-6 mt-4 text-balance">Position premium services, qualify high-intent leads, and convert profile traffic into discovery calls with an always-on AI rep.</p>
                         <Button
                             variant="secondary"
                             size="sm"
                             asChild
                             className="gap-1 pr-1.5">
                             <Link href="/auth/signup">
-                                Get started
+                                See your portfolio in 2 minutes
                                 <ChevronRight />
                             </Link>
                         </Button>
@@ -44,28 +44,28 @@ export default function Features() {
                                 <div className="size-3 shrink-0 rounded-full border border-current"></div>
                                 <div className="size-3 shrink-0 rounded-full border border-current"></div>
                             </div>
-                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Always Available</span>
+                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">24/7 Discovery Assistant</span>
                         </button>
                         <button
                             onClick={() => setFeature('real-time-sync')}
                             data-selected={feature === 'real-time-sync'}
                             className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm">
                             <Cloud className="size-4" />
-                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Lead Generation</span>
+                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Lead Confidence Scoring</span>
                         </button>
                         <button
                             onClick={() => setFeature('developer-first')}
                             data-selected={feature === 'developer-first'}
                             className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm">
                             <Cpu className="size-4" />
-                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Personality Matching</span>
+                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Consultative Sales Mode</span>
                         </button>
                         <button
                             onClick={() => setFeature('enterprise-ready')}
                             data-selected={feature === 'enterprise-ready'}
                             className="not-data-[selected=true]:hover:text-foreground not-data-[selected=true]:text-muted-foreground flex items-center gap-3 py-2 text-sm">
                             <Shield className="size-4" />
-                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Knowledge Base</span>
+                            <span className="in-data-[selected=true]:text-shadow-[0.2px_0_0_currentColor]">Calendar-Ready Booking</span>
                         </button>
                     </div>
                 </div>
