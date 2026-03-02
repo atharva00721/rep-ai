@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // --- Shared Styles ---
-const CARD_BG = "bg-[#f3ede3]"; // Deeper cream/beige to match FH better
+const CARD_BG = "bg-secondary/30"; // Deeper cream/beige to match FH better
 const CARD_ROUNDED = "rounded-[1.5rem]";
 const ACCENT_COLOR = "#D36746";
 
@@ -35,9 +35,9 @@ const KnowledgeSourcesCard = () => {
     return (
         <div className={cn("flex flex-col h-full p-10", CARD_BG, CARD_ROUNDED)}>
             <div className="text-center mb-10">
-                <span className="text-[11px] font-bold text-[#D36746] tracking-[0.2em] mb-4 block uppercase font-mono">01</span>
-                <h3 className="font-serif text-3xl text-neutral-800 mb-3 tracking-tight">Knowledge Ingestion</h3>
-                <p className="text-sm text-neutral-500 font-light leading-relaxed max-w-[220px] mx-auto">
+                <span className="text-[11px] font-bold text-primary tracking-[0.2em] mb-4 block uppercase font-mono">01</span>
+                <h3 className="font-serif text-3xl text-foreground mb-3 tracking-tight">Knowledge Ingestion</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[220px] mx-auto">
                     Instantly train your agent on your existing professional footprint.
                 </p>
             </div>
@@ -49,10 +49,10 @@ const KnowledgeSourcesCard = () => {
                             key={s.id}
                             onClick={() => setSelected(idx)}
                             className={cn(
-                                "flex flex-col items-center justify-center aspect-square rounded-xl transition-all duration-300 border border-neutral-200/50",
+                                "flex flex-col items-center justify-center aspect-square rounded-xl transition-all duration-300 border border-border",
                                 selected === idx
-                                    ? "bg-[#D36746] text-white shadow-xl shadow-[#D36746]/20 border-transparent"
-                                    : "bg-white/80 hover:bg-white text-neutral-400"
+                                    ? "bg-primary text-white shadow-xl shadow-primary/20 border-transparent"
+                                    : "bg-background/80 hover:bg-background text-muted-foreground"
                             )}
                         >
                             <span className="text-[9px] font-bold tracking-tighter mb-1 opacity-60 uppercase">{s.label}</span>
@@ -62,11 +62,11 @@ const KnowledgeSourcesCard = () => {
                 </div>
 
                 <div className="mt-8 flex justify-center gap-6">
-                    <div className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">
-                        <span className="text-[#D36746] mr-2">●</span> 12.4K Tokens
+                    <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                        <span className="text-primary mr-2">●</span> 12.4K Tokens
                     </div>
-                    <div className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">
-                        <span className="text-[#D36746] mr-2">●</span> Ingested
+                    <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                        <span className="text-primary mr-2">●</span> Ingested
                     </div>
                 </div>
             </div>
@@ -79,9 +79,9 @@ const PersonalityRangeCard = () => {
     return (
         <div className={cn("flex flex-col h-full p-10", CARD_BG, CARD_ROUNDED)}>
             <div className="text-center mb-10">
-                <span className="text-[11px] font-bold text-[#D36746] tracking-[0.2em] mb-4 block uppercase font-mono">02</span>
-                <h3 className="font-serif text-3xl text-neutral-800 mb-3 tracking-tight">Lead Qualification</h3>
-                <p className="text-sm text-neutral-500 font-light leading-relaxed max-w-[220px] mx-auto">
+                <span className="text-[11px] font-bold text-primary tracking-[0.2em] mb-4 block uppercase font-mono">02</span>
+                <h3 className="font-serif text-3xl text-foreground mb-3 tracking-tight">Lead Qualification</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[220px] mx-auto">
                     Automatically score and filter incoming opportunities.
                 </p>
             </div>
@@ -89,9 +89,9 @@ const PersonalityRangeCard = () => {
             <div className="flex-1 flex flex-col justify-center">
                 <div className="relative h-40 w-full pl-20 mb-6">
                     {/* Range Markers */}
-                    <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2 text-[8px] font-bold text-neutral-400 tracking-[0.2em] uppercase items-end pr-4 border-r border-neutral-300/50 w-20">
+                    <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between py-2 text-[8px] font-bold text-muted-foreground tracking-[0.2em] uppercase items-end pr-4 border-r border-border w-20">
                         <span className="text-right">High Intent</span>
-                        <span className="bg-[#D36746]/10 text-[#D36746] px-1.5 py-0.5 rounded text-right">Qualified</span>
+                        <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-right">Qualified</span>
                         <span className="text-right">Low Match</span>
                     </div>
 
@@ -100,13 +100,13 @@ const PersonalityRangeCard = () => {
                         <svg className="w-full h-full overflow-visible" viewBox="0 0 300 120" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#D36746" stopOpacity="0.2" />
-                                    <stop offset="100%" stopColor="#D36746" stopOpacity="0" />
+                                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
                                 </linearGradient>
                             </defs>
 
                             {/* Dotted Target Line */}
-                            <line x1="0" y1="60" x2="300" y2="60" stroke="#D36746" strokeOpacity="0.1" strokeDasharray="4 4" />
+                            <line x1="0" y1="60" x2="300" y2="60" stroke="var(--color-primary)" strokeOpacity="0.1" strokeDasharray="4 4" />
 
                             {/* Area Fill */}
                             <motion.path
@@ -124,7 +124,7 @@ const PersonalityRangeCard = () => {
                                 transition={{ duration: 1.5, ease: "easeInOut" }}
                                 d="M0,80 C50,80 80,40 120,45 C160,50 180,90 220,70 C260,50 280,30 300,40"
                                 fill="none"
-                                stroke="#D36746"
+                                stroke="var(--color-primary)"
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -140,7 +140,7 @@ const PersonalityRangeCard = () => {
                                     cx={x}
                                     cy={i === 0 ? 45 : i === 1 ? 70 : 40}
                                     r="4"
-                                    fill="#D36746"
+                                    fill="var(--color-primary)"
                                 />
                             ))}
 
@@ -150,8 +150,8 @@ const PersonalityRangeCard = () => {
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 1.5 }}
                             >
-                                <circle cx="120" cy="45" r="8" fill="#D36746" fillOpacity="0.2" className="animate-pulse" />
-                                <text x="120" y="30" textAnchor="middle" className="text-[10px] font-bold fill-[#D36746]">98% Match</text>
+                                <circle cx="120" cy="45" r="8" fill="var(--color-primary)" fillOpacity="0.2" className="animate-pulse" />
+                                <text x="120" y="30" textAnchor="middle" className="text-[10px] font-bold fill-primary">98% Match</text>
                             </motion.g>
                         </svg>
                     </div>
@@ -181,9 +181,9 @@ const ResponseProtocolCard = () => {
     return (
         <div className={cn("flex flex-col h-full p-10", CARD_BG, CARD_ROUNDED)}>
             <div className="text-center mb-10">
-                <span className="text-[11px] font-bold text-[#D36746] tracking-[0.2em] mb-4 block uppercase font-mono">03</span>
-                <h3 className="font-serif text-3xl text-neutral-800 mb-3 tracking-tight">Automated Workflows</h3>
-                <p className="text-sm text-neutral-500 font-light leading-relaxed max-w-[220px] mx-auto">
+                <span className="text-[11px] font-bold text-primary tracking-[0.2em] mb-4 block uppercase font-mono">03</span>
+                <h3 className="font-serif text-3xl text-foreground mb-3 tracking-tight">Automated Workflows</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-[220px] mx-auto">
                     Your agent handles the busywork so you can build.
                 </p>
             </div>
@@ -205,20 +205,20 @@ const ResponseProtocolCard = () => {
                                 <div className="relative flex items-center justify-center size-2.5">
                                     <div className={cn(
                                         "absolute inset-0 rounded-full transition-colors duration-700",
-                                        isActive ? "bg-[#D36746]" : isPast ? "bg-[#D36746]/40" : "bg-neutral-300"
+                                        isActive ? "bg-primary" : isPast ? "bg-primary/40" : "bg-muted"
                                     )} />
                                     {isActive && (
                                         <motion.div
                                             initial={{ scale: 0.8, opacity: 0 }}
                                             animate={{ scale: 3, opacity: 0 }}
                                             transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }}
-                                            className="absolute inset-0 rounded-full bg-[#D36746]"
+                                            className="absolute inset-0 rounded-full bg-primary"
                                         />
                                     )}
                                 </div>
                                 <h4 className={cn(
-                                    "text-[11px] font-sans tracking-widest uppercase transition-colors duration-700",
-                                    isActive ? "text-[#D36746]" : "text-neutral-500"
+                                    "text-[11px] font-sans font-semibold tracking-widest uppercase transition-colors duration-700",
+                                    isActive ? "text-primary" : "text-muted-foreground"
                                 )}>
                                     {p.label}
                                 </h4>
@@ -232,7 +232,7 @@ const ResponseProtocolCard = () => {
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                                            className="text-xs text-neutral-500 font-light mt-1 ml-[26px]"
+                                            className="text-xs text-muted-foreground font-light mt-1 ml-[26px]"
                                         >
                                             {p.desc}
                                         </motion.p>
@@ -250,14 +250,14 @@ const ResponseProtocolCard = () => {
 // --- Main Page Component ---
 export default function FeaturesInteractive() {
     return (
-        <section className="bg-background py-32 overflow-hidden border-t border-neutral-100">
+        <section className="bg-background py-32 overflow-hidden border-t border-border">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col items-center text-center mb-24 space-y-6">
                     <motion.h2
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                        className="font-serif text-2xl md:text-3xl lg:text-5xl text-neutral-900 tracking-tight leading-[1.1]"
+                        className="font-serif text-2xl md:text-3xl lg:text-5xl text-foreground tracking-tight leading-[1.1]"
                     >
                         Lead generation on <span className="italic font-normal">autopilot</span>
                     </motion.h2>
@@ -293,14 +293,14 @@ export default function FeaturesInteractive() {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="h-16 px-12 rounded-full bg-[#D36746] text-white font-bold text-sm transition-all hover:bg-[#b05234] shadow-2xl shadow-[#D36746]/30"
+                        className="h-16 px-12 rounded-full bg-primary text-white font-bold text-sm transition-all hover:bg-[#b05234] shadow-2xl shadow-primary/30"
                     >
                         Build your agent
                     </motion.button>
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="h-16 px-12 rounded-full border border-[#D36746] text-[#D36746] font-bold text-sm transition-all hover:bg-[#D36746]/5"
+                        className="h-16 px-12 rounded-full border border-primary text-primary font-bold text-sm transition-all hover:bg-primary/5"
                     >
                         How it works
                     </motion.button>
