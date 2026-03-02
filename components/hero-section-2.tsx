@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { HeroHeader } from './header';
 import FeaturesInteractive from './features-interactive';
+import MonitorSection from './monitor-section';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -127,6 +128,7 @@ export default function HeroSectionV2() {
                 </div>
             </main>
             <FeaturesInteractive />
+            <MonitorSection />
         </>
     );
 }
