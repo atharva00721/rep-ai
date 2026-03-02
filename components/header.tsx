@@ -5,6 +5,7 @@ import { Menu, X, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { ThemeSwitcher } from './theme-switcher'
 
 const menuItems = [
     { name: 'How it works', href: '/how-it-works' },
@@ -66,9 +67,7 @@ export const HeroHeader = () => {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3 md:gap-4 shrink-0">
-                            <button aria-label="Search" className="text-white/60 hover:text-white transition-colors hidden sm:block">
-                                <Search className="size-4 md:size-5" />
-                            </button>
+                            <ThemeSwitcher />
                             <Link
                                 href="/auth/signin"
                                 className="text-[13px] font-medium text-white/60 hover:text-white transition-colors hidden md:block">

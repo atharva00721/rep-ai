@@ -46,14 +46,14 @@ export function PortfolioSwitcher() {
             <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                     size="lg"
-                    className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!p-0"
                 >
                     {/* Logo Icon visible in both states */}
-                    <div className="flex size-12 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0 overflow-hidden">
+                    <div className="flex size-12 group-data-[collapsible=icon]:size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0 overflow-hidden">
                         {isLoading ? (
                             <Loader2 className="size-4 animate-spin" />
                         ) : (
-                            <LogoIcon className="h-auto w-auto" />
+                            <LogoIcon className="h-auto w-auto group-data-[collapsible=icon]:size-7" />
                         )}
                     </div>
 
