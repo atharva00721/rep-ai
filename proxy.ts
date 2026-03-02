@@ -31,7 +31,7 @@ function normalizeBaseDomain(input: string) {
     .replace(/^www\./, "");
 }
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname } = url;
 
