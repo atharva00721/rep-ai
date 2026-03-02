@@ -11,6 +11,8 @@ export interface Profile {
   credits: number;
   email: string;
   image?: string | null;
+  billingCustomerId?: string | null;
+  billingSubscriptionId?: string | null;
 }
 
 export interface Lead {
@@ -89,6 +91,8 @@ export async function getProfileById(id: string): Promise<Profile | null> {
       plan: users.plan,
       credits: users.credits,
       image: users.image,
+      billingCustomerId: users.billingCustomerId,
+      billingSubscriptionId: users.billingSubscriptionId,
     })
     .from(users)
     .where(eq(users.id, id))

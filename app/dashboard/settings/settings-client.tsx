@@ -191,6 +191,27 @@ export function SettingsClient({ user, portfolio }: SettingsClientProps) {
   const canSave = (hasHandleChanged || hasProfileChanged) && !handleError;
 
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingPortal, setLoadingPortal] = useState(false);
+
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const response = await fetch("/api/billing/portal", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to open billing portal");
+      }
+    } catch {
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setLoadingPortal(false);
+    }
+  };
 
   const handleUpgrade = async (planId: string) => {
     if (planId === "free") return;
@@ -259,7 +280,15 @@ export function SettingsClient({ user, portfolio }: SettingsClientProps) {
           }
 
           if (tab.value === "billing") {
-            return <BillingTab user={user} loadingPlan={loadingPlan} handleUpgrade={handleUpgrade} />;
+            return (
+              <BillingTab
+                user={user}
+                loadingPlan={loadingPlan}
+                loadingPortal={loadingPortal}
+                handleUpgrade={handleUpgrade}
+                handleManageSubscription={handleManageSubscription}
+              />
+            );
           }
 
           if (tab.value === "appearance") {

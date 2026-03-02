@@ -3,7 +3,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Zap, Check, Loader2 } from "lucide-react";
+import { Zap, Check, Loader2, XCircle } from "lucide-react";
+import { CancelSubscriptionDialog } from "@/components/billingsdk/cancel-subscription-dialog";
+import { plans } from "@/lib/billingsdk-config";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface BillingTabProps {
     user: {
@@ -11,10 +15,31 @@ interface BillingTabProps {
         credits: number;
     };
     loadingPlan: string | null;
+    loadingPortal: boolean;
     handleUpgrade: (planId: string) => void;
+    handleManageSubscription: () => void;
 }
 
-export function BillingTab({ user, loadingPlan, handleUpgrade }: BillingTabProps) {
+export function BillingTab({ user, loadingPlan, loadingPortal, handleUpgrade, handleManageSubscription }: BillingTabProps) {
+    const router = useRouter();
+
+    const handleCancel = async () => {
+        try {
+            const res = await fetch("/api/billing/cancel", { method: "POST" });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success("Subscription cancelled. You will have access until the end of the billing period.");
+                router.refresh();
+            } else {
+                toast.error(data.error || "Failed to cancel");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const currentPlanDetails = plans.find(p => p.id === user.plan) || plans[0];
+
     return (
         <div className="space-y-6 pt-4">
             <div className="grid gap-6 md:grid-cols-2">
@@ -58,9 +83,29 @@ export function BillingTab({ user, loadingPlan, handleUpgrade }: BillingTabProps
                         </p>
                     </CardContent>
                     <CardFooter className="bg-primary/5 border-t border-primary/10 mt-auto">
-                        <Button variant="outline" className="w-full bg-background" disabled>
-                            Manage Subscription
-                        </Button>
+                        <div className="flex flex-col gap-2 w-full">
+                            <Button
+                                variant="outline"
+                                className="w-full bg-background"
+                                disabled={user.plan === "free" || loadingPortal}
+                                onClick={handleManageSubscription}
+                            >
+                                {loadingPortal && <Loader2 className="size-4 animate-spin mr-2" />}
+                                Manage Subscription
+                            </Button>
+
+                            {user.plan !== "free" && (
+                                <CancelSubscriptionDialog
+                                    title="Cancel Subscription"
+                                    description="We're sorry to see you go. You can cancel your subscription below."
+                                    plan={currentPlanDetails}
+                                    onCancel={handleCancel}
+                                    triggerButtonText="Cancel Plan"
+                                    className="max-w-4xl"
+                                    leftPanelImageUrl="https://framerusercontent.com/images/GWE8vop9hubsuh3uWWn0vyuxEg.webp"
+                                />
+                            )}
+                        </div>
                     </CardFooter>
                 </Card>
             </div>
@@ -109,12 +154,12 @@ export function BillingTab({ user, loadingPlan, handleUpgrade }: BillingTabProps
                                 onClick={() => handleUpgrade(plan.id)}
                             >
                                 {loadingPlan === plan.id ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                                {user.plan === plan.id ? "Current Plan" : `Upgrade to ${plan.name}`}
+                                {user.plan === plan.id ? "Active Plan" : `Upgrade to ${plan.name}`}
                             </Button>
                         </CardFooter>
                     </Card>
                 ))}
             </div>
-        </div>
+        </div >
     );
 }

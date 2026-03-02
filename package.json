@@ -36,7 +36,7 @@
     "date-fns": "^4.1.0",
     "dodopayments": "^2.21.0",
     "drizzle-orm": "^0.44.7",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "^0.576.0",
     "motion": "^12.34.3",
     "nanoid": "^5.1.6",
     "next": "16.1.6",
