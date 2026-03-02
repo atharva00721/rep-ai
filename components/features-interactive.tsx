@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // --- Shared Styles ---
-const CARD_BG = "bg-secondary/30"; // Deeper cream/beige to match FH better
+const CARD_BG = "bg-muted/50"; // Deeper cream/beige to match FH better
 const CARD_ROUNDED = "rounded-[1.5rem]";
 const ACCENT_COLOR = "#D36746";
 
@@ -289,22 +289,22 @@ export default function FeaturesInteractive() {
                     </motion.div>
                 </div>
 
-                <div className="mt-24 flex flex-col md:flex-row items-center justify-center gap-6">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="h-16 px-12 rounded-full bg-primary text-white font-bold text-sm transition-all hover:bg-[#b05234] shadow-2xl shadow-primary/30"
-                    >
-                        Build your agent
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="h-16 px-12 rounded-full border border-primary text-primary font-bold text-sm transition-all hover:bg-primary/5"
-                    >
-                        How it works
-                    </motion.button>
-                </div>
+                {/* <div className="mt-24 flex flex-col md:flex-row items-center justify-center gap-6">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="h-16 px-12 rounded-full bg-primary text-white font-bold text-sm transition-all hover:bg-[#b05234] shadow-2xl shadow-primary/30"
+                        >
+                            Build your agent
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="h-16 px-12 rounded-full border border-primary text-primary font-bold text-sm transition-all hover:bg-primary/5"
+                        >
+                            How it works
+                        </motion.button>
+                    </div> */}
             </div>
         </section>
     );
