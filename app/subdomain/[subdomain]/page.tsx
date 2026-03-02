@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PublicSubdomainPageProps): Pr
   const content = validatePortfolioContent(portfolio.content);
   const title = content.hero.headline;
   const description = content.about.paragraph.slice(0, 150);
-  const baseDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || process.env.NEXT_PUBLIC_APP_URL || "localhost:3000").replace(/^https?:\/\//, "");
+  const baseDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || process.env.NEXT_PUBLIC_APP_URL || "localhost:3000").replace(/^https?:\/\//, "").replace(/^www\./, "");
   const canonical = `https://${subdomain}.${baseDomain}`;
 
   return {

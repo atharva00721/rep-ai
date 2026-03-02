@@ -134,7 +134,7 @@ export function DomainsClient({ portfolio, canUseSubdomain }: DomainsClientProps
                                                 <CheckCircle2 className="size-3" />
                                             </div>
                                             <p className="text-xs text-primary/80 font-medium">
-                                                https://{subdomain}.{(process.env.NEXT_PUBLIC_ROOT_DOMAIN || process.env.NEXT_PUBLIC_APP_URL || "localhost:3000").replace(/^https?:\/\//, "")}
+                                                https://{subdomain}.{(process.env.NEXT_PUBLIC_ROOT_DOMAIN || process.env.NEXT_PUBLIC_APP_URL || "localhost:3000").replace(/^https?:\/\//, "").replace(/^www\./, "")}
                                             </p>
                                         </div>
                                     ) : null}

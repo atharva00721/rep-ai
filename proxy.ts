@@ -27,7 +27,8 @@ function normalizeBaseDomain(input: string) {
     .split("/")[0]
     .replace(/"/g, "")
     .replace(/'/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/^www\./, "");
 }
 
 export async function proxy(request: NextRequest) {
