@@ -25,6 +25,7 @@ export default async function EmbedAgentPage({ params }: EmbedPageProps) {
       agentName={agent.displayName ?? "AI Assistant"}
       roleLabel={agent.roleLabel ?? null}
       intro={agent.intro ?? null}
+      plan={agent.plan}
     />
   );
 }

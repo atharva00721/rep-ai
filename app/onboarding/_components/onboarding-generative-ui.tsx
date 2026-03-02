@@ -105,7 +105,7 @@ export function SetupPathSelector({ options, onSelect, disabled }: SetupPathSele
                 {option.description}
               </CardDescription>
             </CardContent>
-            <CardFooter className="pt-0">
+            <CardFooter className="">
               {isSelected && (
                 <Badge variant="secondary" className="text-xs">
                   Selected
@@ -152,8 +152,8 @@ export function SectionSelectorCards({ value, onChange, onSubmit, disabled }: Se
             <Card
               key={section.key}
               className={`cursor-pointer transition-all duration-200 ${isEnabled
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/30"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/30"
                 } ${section.locked ? "opacity-80" : ""}`}
               onClick={() => {
                 if (disabled || section.locked) return;
@@ -217,8 +217,8 @@ export function ToneSelectorCards({ options, onSelect, disabled }: ToneSelectorC
             <Card
               key={option.id}
               className={`cursor-pointer transition-all duration-200 ${isSelected
-                  ? "border-primary ring-2 ring-primary/20"
-                  : "border-border hover:border-primary/30"
+                ? "border-primary ring-2 ring-primary/20"
+                : "border-border hover:border-primary/30"
                 }`}
               onClick={() => !disabled && handleSelect(option)}
             >

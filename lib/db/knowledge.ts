@@ -1,6 +1,6 @@
 import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { agents, knowledgeChunks, knowledgeSources, portfolios } from "@/lib/schema";
+import { agents, knowledgeChunks, knowledgeSources, portfolios, users } from "@/lib/schema";
 import { chunkText } from "@/lib/knowledge/chunk-text";
 import { generateEmbeddings } from "@/lib/ai/embeddings";
 
@@ -298,11 +298,12 @@ export async function getPublicAgentById(agentId: string) {
       avatarUrl: agents.avatarUrl,
       intro: agents.intro,
       roleLabel: agents.roleLabel,
-      portfolioHandle: portfolios.handle,
       portfolioIsPublished: portfolios.isPublished,
+      plan: users.plan,
     })
     .from(agents)
     .leftJoin(portfolios, eq(portfolios.id, agents.portfolioId))
+    .leftJoin(users, eq(users.id, agents.userId))
     .where(eq(agents.id, agentId))
     .limit(1);
 

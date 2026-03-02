@@ -16,6 +16,8 @@ export interface AgentConfigState {
   offDays: string[];
   googleCalendarEnabled: boolean;
   googleCalendarAccountEmail: string | null;
+  calendlyEnabled: boolean;
+  calendlyAccountEmail: string | null;
 }
 
 export interface ChatMessage {

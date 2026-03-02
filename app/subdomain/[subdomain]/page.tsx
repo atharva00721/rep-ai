@@ -12,6 +12,7 @@ import { getPublishedPortfolioWithAgentBySubdomain } from "@/lib/db/portfolio";
 import { validatePortfolioContent } from "@/lib/validation/portfolio-schema";
 import { AgentWidget } from "@/components/agent-widget";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { MadeWithBadge } from "@/components/made-with-badge";
 
 const SUBDOMAIN_REGEX = /^[a-z0-9-]{3,30}$/;
 
@@ -106,6 +107,7 @@ export default async function PublicSubdomainPage({ params }: PublicSubdomainPag
           intro={portfolio.agentIntro ?? null}
         />
       ) : null}
+      {portfolio.plan === "free" && <MadeWithBadge />}
     </main>
   );
 }

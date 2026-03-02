@@ -28,6 +28,8 @@ interface AgentClientProps {
     roleLabel: string | null;
     googleCalendarEnabled: boolean;
     googleCalendarAccountEmail: string | null;
+    calendlyEnabled: boolean;
+    calendlyAccountEmail: string | null;
     notificationEmail: string | null;
     workingHours?: { dayOfWeek: number; startTime: string; endTime: string; enabled: boolean }[] | null;
     offDays?: string[] | null;
@@ -41,6 +43,7 @@ interface AgentClientProps {
 export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPortfolioPublished }: AgentClientProps) {
   const [isPending, startTransition] = useTransition();
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
+  const [isDisconnectingCalendly, setIsDisconnectingCalendly] = useState(false);
   const [widgetLabel, setWidgetLabel] = useState("Chat");
   const [widgetPosition, setWidgetPosition] = useState<"bottom-right" | "bottom-left">("bottom-right");
   const [widgetWidth, setWidgetWidth] = useState(360);
@@ -63,6 +66,8 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
       roleLabel: agent.roleLabel || "",
       googleCalendarEnabled: agent.googleCalendarEnabled,
       googleCalendarAccountEmail: agent.googleCalendarAccountEmail,
+      calendlyEnabled: agent.calendlyEnabled,
+      calendlyAccountEmail: agent.calendlyAccountEmail,
       notificationEmail: agent.notificationEmail || null,
       workingHours: agent.workingHours || [
         { dayOfWeek: 0, startTime: "09:00", endTime: "17:00", enabled: false },
@@ -85,6 +90,14 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
     }
     if (params.get("calendar_error")) {
       toast.error(`Failed to connect Google Calendar: ${params.get("calendar_error")}`);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("calendly") === "connected") {
+      toast.success("Calendly connected successfully");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("calendly_error")) {
+      toast.error(`Failed to connect Calendly: ${params.get("calendly_error")}`);
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -135,6 +148,20 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
     }
   };
 
+  const handleCalendlyDisconnect = async () => {
+    setIsDisconnectingCalendly(true);
+    try {
+      const resp = await fetch("/api/integrations/calendly/disconnect", { method: "POST" });
+      if (!resp.ok) throw new Error("Failed to disconnect");
+      setConfig({ calendlyEnabled: false, calendlyAccountEmail: null });
+      toast.success("Calendly disconnected");
+    } catch {
+      toast.error("Failed to disconnect Calendly");
+    } finally {
+      setIsDisconnectingCalendly(false);
+    }
+  };
+
   const { sendTestMessage } = useAgentActions({ chatInput, isChatLoading, hasContent, portfolioHandle, chatMessages, addChatMessage, setChatInput, setIsChatLoading });
 
   const canTest = config.isEnabled && hasContent;
@@ -172,7 +199,7 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
         renderContent={(tab) => {
           if (tab.value === "settings") return <AgentSettingsTab config={config} isPending={isPending} agentId={agentId} onSave={handleSave} setConfig={setConfig} />;
           if (tab.value === "widget") return <AgentWidgetTab canGenerateWidget={canGenerateWidget} isWidgetReady={isWidgetReady} scriptUrl={scriptUrl} scriptSnippet={scriptSnippet} iframeSnippet={iframeSnippet} appOrigin={appOrigin} agentId={agentId} widgetLabel={widgetLabel} widgetPosition={widgetPosition} widgetWidth={widgetWidth} widgetHeight={widgetHeight} setWidgetLabel={setWidgetLabel} setWidgetPosition={setWidgetPosition} setWidgetWidth={setWidgetWidth} setWidgetHeight={setWidgetHeight} />;
-          if (tab.value === "integrations") return <AgentIntegrationsTab config={config} isDisconnectingCalendar={isDisconnectingCalendar} handleCalendarDisconnect={handleCalendarDisconnect} />;
+          if (tab.value === "integrations") return <AgentIntegrationsTab config={config} isDisconnectingCalendar={isDisconnectingCalendar} handleCalendarDisconnect={handleCalendarDisconnect} isDisconnectingCalendly={isDisconnectingCalendly} handleCalendlyDisconnect={handleCalendlyDisconnect} />;
           if (tab.value === "test") return <AgentTestTab canTest={canTest} chatMessages={chatMessages} chatInput={chatInput} isChatLoading={isChatLoading} clearChatMessages={clearChatMessages} setChatInput={setChatInput} sendTestMessage={sendTestMessage} isAgentEnabled={config.isEnabled} />;
           return null;
         }}

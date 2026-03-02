@@ -4,21 +4,31 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Calendar, CheckCircle2, Globe, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import type { AgentConfigState } from "./types";
+import Image from "next/image";
 
 interface AgentIntegrationsTabProps {
   config: AgentConfigState;
   isDisconnectingCalendar: boolean;
   handleCalendarDisconnect: () => Promise<void>;
+  isDisconnectingCalendly: boolean;
+  handleCalendlyDisconnect: () => Promise<void>;
 }
 
-export function AgentIntegrationsTab({ config, isDisconnectingCalendar, handleCalendarDisconnect }: AgentIntegrationsTabProps) {
+export function AgentIntegrationsTab({
+  config,
+  isDisconnectingCalendar,
+  handleCalendarDisconnect,
+  isDisconnectingCalendly,
+  handleCalendlyDisconnect
+}: AgentIntegrationsTabProps) {
   return (
     <div className="space-y-6 pt-5">
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Google Calendar */}
         <Card className="flex flex-col">
           <CardHeader>
             <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500"><Calendar className="size-6" /></div>
+              <Image src="/Integrations/g_calender.svg" alt="Google Calendar" width={70} height={70} className="-ml-2" />
               <Badge variant={config.googleCalendarEnabled ? "default" : "secondary"}>{config.googleCalendarEnabled ? <span className="flex items-center gap-1"><CheckCircle2 className="size-3" /> Connected</span> : "Not Connected"}</Badge>
             </div>
             <CardTitle className="text-xl">Google Calendar</CardTitle>
@@ -35,6 +45,40 @@ export function AgentIntegrationsTab({ config, isDisconnectingCalendar, handleCa
               </Button>
             ) : (
               <Button className="w-full" asChild><Link href="/api/integrations/google-calendar/connect">Connect Google Calendar</Link></Button>
+            )}
+          </CardFooter>
+        </Card>
+
+        {/* Calendly */}
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <Image src="/Integrations/calendly.png" alt="Calendly" width={70} height={70} className="-ml-2 rounded-md" />
+              <Badge variant={config.calendlyEnabled ? "default" : "secondary"}>
+                {config.calendlyEnabled ? <span className="flex items-center gap-1"><CheckCircle2 className="size-3" /> Connected</span> : "Not Connected"}
+              </Badge>
+            </div>
+            <CardTitle className="text-xl">Calendly</CardTitle>
+            <CardDescription>Let your agent schedule meetings using your Calendly links and manage your bookings.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1">
+            {config.calendlyEnabled && config.calendlyAccountEmail && (
+              <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border text-sm font-medium">
+                <Globe className="size-4 text-muted-foreground" />
+                <span className="truncate">{config.calendlyAccountEmail}</span>
+              </div>
+            )}
+            {!config.calendlyEnabled && <p className="text-sm text-muted-foreground">Connect your Calendly account to allow your AI assistant to handle bookings.</p>}
+          </CardContent>
+          <CardFooter className="bg-muted/30 border-t border-border mt-auto">
+            {config.calendlyEnabled ? (
+              <Button variant="outline" className="w-full text-destructive hover:text-destructive" onClick={handleCalendlyDisconnect} disabled={isDisconnectingCalendly}>
+                {isDisconnectingCalendly ? <Loader2 className="size-4 animate-spin mr-2" /> : <XCircle className="size-4 mr-2" />}Disconnect Calendly
+              </Button>
+            ) : (
+              <Button className="w-full" asChild>
+                <Link href="/api/integrations/calendly/connect">Connect Calendly</Link>
+              </Button>
             )}
           </CardFooter>
         </Card>

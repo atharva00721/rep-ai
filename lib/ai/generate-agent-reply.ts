@@ -43,17 +43,26 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
   const hasDateOrDayRegex = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?|today|tomorrow|next week|next month|this week|this weekend|\d{1,2}(st|nd|rd|th)?( of)?( )?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)( )?\d{1,2}|\d{1,2}\/\d{1,2})\b/i;
   const userMessageSuggestsDate = hasDateOrDayRegex.test(input.message);
 
-  if (!resolvedCalendarToken) {
+  if (!resolvedCalendarToken || input.calendlyEnabled === undefined) {
     try {
       const [agentRow] = await db
         .select()
         .from(agents)
         .where(eq(agents.id, input.agentId))
         .limit(1);
-      if (agentRow?.googleCalendarEnabled) {
-        resolvedCalendarToken = await getValidAccessToken(agentRow);
-        // Only enable the tool if we have a token AND the user seems to be asking about a real date
-        calendarEnabled = !!resolvedCalendarToken && userMessageSuggestsDate;
+
+      if (agentRow) {
+        if (agentRow.googleCalendarEnabled && !resolvedCalendarToken) {
+          resolvedCalendarToken = await getValidAccessToken(agentRow);
+          calendarEnabled = !!resolvedCalendarToken && userMessageSuggestsDate;
+        }
+
+        // Populate Calendly fields if they aren't provided in the input
+        if (input.calendlyEnabled === undefined) {
+          input.calendlyEnabled = agentRow.calendlyEnabled;
+          input.calendlyAccountEmail = agentRow.calendlyAccountEmail;
+          input.calendlySchedulingUrl = agentRow.calendlySchedulingUrl;
+        }
       }
     } catch {
       // Non-fatal — tool will gracefully return an error if token is null
@@ -61,6 +70,8 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
   } else {
     calendarEnabled = userMessageSuggestsDate;
   }
+
+  const calendlyEnabled = !!input.calendlyEnabled && !!input.calendlySchedulingUrl;
 
   try {
     let messages: any[] = [
@@ -189,6 +200,20 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
                     console.error(`[tool:check_availability] CRITICAL ERROR in ${Date.now() - toolStart}ms:`, error);
                     return { error: `An error occurred while checking availability: ${error.message || "Unknown error"}` };
                   }
+                },
+              }),
+            } : {}),
+
+            ...(calendlyEnabled ? {
+              get_calendly_link: (tool as any)({
+                description: "Get the visitor's custom Calendly booking link. ONLY call this if the visitor specifically asks for a link, wants to 'book a meeting', 'schedule time', or 'see your calendar'. NEVER call this tool if Calendly is not enabled.",
+                parameters: z.object({}),
+                execute: async () => {
+                  console.log(`[tool:get_calendly_link] CALLED`);
+                  return {
+                    booking_url: input.calendlySchedulingUrl,
+                    instructions: "Share this link with the visitor so they can choose a time that works for them."
+                  };
                 },
               }),
             } : {}),

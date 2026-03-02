@@ -12,6 +12,7 @@ import { getPublishedPortfolioByHandle, getPublishedPortfolioWithAgentByHandle }
 import { validatePortfolioContent } from "@/lib/validation/portfolio-schema";
 import { AgentWidget } from "@/components/agent-widget";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { MadeWithBadge } from "@/components/made-with-badge";
 
 const HANDLE_REGEX = /^[a-z0-9-]{3,30}$/;
 
@@ -113,6 +114,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
           intro={portfolio.agentIntro ?? null}
         />
       ) : null}
+      {portfolio.plan === "free" && <MadeWithBadge />}
     </main>
   );
 }

@@ -18,10 +18,11 @@ import { MessageResponse } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { ArrowUpIcon, Loader2, MessageSquare } from "lucide-react";
 import { embedChatWithAgent } from "./actions";
+import { MadeWithBadge } from "@/components/made-with-badge";
 
-type ChatMessage = { 
+type ChatMessage = {
   id: string;
-  role: "user" | "assistant"; 
+  role: "user" | "assistant";
   content: string;
 };
 
@@ -30,9 +31,10 @@ interface EmbedChatClientProps {
   agentName?: string;
   roleLabel?: string | null;
   intro?: string | null;
+  plan?: string | null;
 }
 
-export function EmbedChatClient({ agentId, agentName = "AI Assistant", roleLabel, intro }: EmbedChatClientProps) {
+export function EmbedChatClient({ agentId, agentName = "AI Assistant", roleLabel, intro, plan }: EmbedChatClientProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,7 @@ export function EmbedChatClient({ agentId, agentName = "AI Assistant", roleLabel
       role: "user",
       content,
     };
-    
+
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setInput("");
@@ -82,16 +84,16 @@ export function EmbedChatClient({ agentId, agentName = "AI Assistant", roleLabel
       }
 
       setMessages((prev) => [
-        ...prev, 
+        ...prev,
         { id: crypto.randomUUID(), role: "assistant", content: streamed }
       ]);
     } catch {
       setMessages((prev) => [
-        ...prev, 
-        { 
-          id: crypto.randomUUID(), 
-          role: "assistant", 
-          content: "Agent unavailable right now. Please try again." 
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "Agent unavailable right now. Please try again."
         }
       ]);
     } finally {
@@ -190,6 +192,7 @@ export function EmbedChatClient({ agentId, agentName = "AI Assistant", roleLabel
           </InputGroupAddon>
         </InputGroup>
       </form>
+      {plan === "free" && <MadeWithBadge />}
     </div>
   );
 }

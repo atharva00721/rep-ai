@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db, withRetry } from "@/lib/db";
-import { agents, portfolios } from "@/lib/schema";
+import { agents, portfolios, users } from "@/lib/schema";
 
 export type PortfolioTone = "Professional" | "Friendly" | "Bold" | "Minimal";
 
@@ -174,9 +174,11 @@ export async function getPublishedPortfolioWithAgentBySubdomain(subdomain: strin
         agentNotificationEmail: agents.notificationEmail,
         agentWorkingHours: agents.workingHours,
         agentOffDays: agents.offDays,
+        plan: users.plan,
       })
       .from(portfolios)
       .leftJoin(agents, eq(agents.portfolioId, portfolios.id))
+      .leftJoin(users, eq(users.id, portfolios.userId))
       .where(and(eq(portfolios.subdomain, subdomain), eq(portfolios.isPublished, true)))
       .limit(1));
     return row ?? null;
@@ -211,9 +213,11 @@ export async function getPublishedPortfolioWithAgentByHandle(handle: string) {
         agentNotificationEmail: agents.notificationEmail,
         agentWorkingHours: agents.workingHours,
         agentOffDays: agents.offDays,
+        plan: users.plan,
       })
       .from(portfolios)
       .leftJoin(agents, eq(agents.portfolioId, portfolios.id))
+      .leftJoin(users, eq(users.id, portfolios.userId))
       .where(and(eq(portfolios.handle, handle), eq(portfolios.isPublished, true)))
       .limit(1));
     return row ?? null;

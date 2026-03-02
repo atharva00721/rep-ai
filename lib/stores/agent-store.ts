@@ -17,6 +17,8 @@ interface AgentConfig {
   notificationEmail: string | null;
   googleCalendarEnabled: boolean;
   googleCalendarAccountEmail: string | null;
+  calendlyEnabled: boolean;
+  calendlyAccountEmail: string | null;
 }
 
 interface ChatMessage {
@@ -62,6 +64,8 @@ const defaultConfig: AgentConfig = {
   offDays: [],
   googleCalendarEnabled: false,
   googleCalendarAccountEmail: null,
+  calendlyEnabled: false,
+  calendlyAccountEmail: null,
   notificationEmail: null,
 };
 
