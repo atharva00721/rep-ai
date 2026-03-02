@@ -17,7 +17,7 @@ const marqueeItems2 = [
 
 export default function MonitorSection() {
     return (
-        <section className="bg-background py-32 overflow-hidden border-t border-border relative">
+        <section className="bg-background py-32 overflow-hidden relative">
             <div className="max-w-full mx-auto px-6 md:px-12 lg:px-20 relative z-10">
 
                 {/* Header Section */}

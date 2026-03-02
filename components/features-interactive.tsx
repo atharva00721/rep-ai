@@ -250,7 +250,7 @@ const ResponseProtocolCard = () => {
 // --- Main Page Component ---
 export default function FeaturesInteractive() {
     return (
-        <section className="bg-background py-32 overflow-hidden border-t border-border">
+        <section className="bg-background py-32 overflow-hidden">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col items-center text-center mb-24 space-y-6">
                     <motion.h2

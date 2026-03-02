@@ -11,11 +11,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ExternalLink, Sparkles, Loader2, Globe, FileText, Briefcase, Megaphone, Pencil, Save, X, Plus, Trash2, Share2, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExternalLink, Sparkles, Loader2, Globe, FileText, Briefcase, Megaphone, Pencil, Save, X, Plus, Trash2, Share2, RefreshCw, Layout, Eye, Settings2 } from "lucide-react";
+import { HeroSection } from "./components/HeroSection";
+import { AboutSection } from "./components/AboutSection";
+import { ServicesSection } from "./components/ServicesSection";
+import { ProjectsSection } from "./components/ProjectsSection";
+import { ProductsSection } from "./components/ProductsSection";
+import { HistorySection } from "./components/HistorySection";
+import { TestimonialsSection } from "./components/TestimonialsSection";
+import { FAQSection } from "./components/FAQSection";
+import { GallerySection } from "./components/GallerySection";
+import { CTASection } from "./components/CTASection";
+import { SocialLinksSection } from "./components/SocialLinksSection";
 import Link from "next/link";
 import { usePortfolioActions } from "./_hooks/use-portfolio-actions";
 import { usePortfolioEditorStore } from "./_hooks/use-portfolio-editor-store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { PortfolioContent } from "../actions";
 import type { SocialLink, SocialPlatform } from "@/lib/validation/portfolio-schema";
@@ -29,10 +41,12 @@ import {
 interface PortfolioClientProps {
   portfolio: {
     handle: string;
+    subdomain?: string | null;
     isPublished: boolean;
     template: string;
     updatedAt: string;
   };
+  plan?: string;
   content: PortfolioContent | null;
 }
 
@@ -40,7 +54,7 @@ const getVisibleSections = (content: PortfolioContent | null | undefined) => ({
   ...mergeVisibleSections(content?.visibleSections),
 });
 
-export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
+export function PortfolioClient({ portfolio, plan = "free", content }: PortfolioClientProps) {
   const {
     isPending,
     isPublished,
@@ -50,17 +64,17 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
     handleRegenerate,
   } = usePortfolioActions(Boolean(content), portfolio.isPublished);
 
-  const { editMode, editedContent, setEditMode, setEditedContent, resetFromServer } = usePortfolioEditorStore();
+  const { editedContent, setEditedContent, resetFromServer } = usePortfolioEditorStore();
   const [syncUrl, setSyncUrl] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncDialog, setShowSyncDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("hero");
 
   const saveMutation = useMutation({
     mutationFn: async (nextContent: PortfolioContent) => {
       const { updatePortfolioContent } = await import("@/app/dashboard/actions");
       await updatePortfolioContent(nextContent);
     },
-    onSuccess: () => setEditMode(false),
   });
 
   useEffect(() => {
@@ -78,7 +92,6 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
 
   const handleCancel = () => {
     setEditedContent(content ? { ...content, visibleSections: mergeVisibleSections(content.visibleSections) } : content);
-    setEditMode(false);
   };
 
   const updateHero = (field: string, value: string) => {
@@ -318,7 +331,6 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
           hero: { ...editedContent.hero, ...extractData.data.hero },
           about: { ...editedContent.about, ...extractData.data.about },
         });
-        setEditMode(true);
         setShowSyncDialog(false);
         setSyncUrl("");
       }
@@ -343,9 +355,41 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
     { platform: "website", label: "Website" },
   ];
 
-  const portfolioLink = `/${portfolio.handle}`;
+  const appOrigin = useMemo(() => {
+    const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    if (configuredOrigin) return configuredOrigin.replace(/\/$/, "");
+    if (typeof window !== "undefined") return window.location.origin;
+    return "";
+  }, []);
 
-  const displayContent = editMode ? editedContent : content;
+  const hasProPlan = plan === "pro" || plan === "business" || plan === "agency";
+
+  const portfolioLink = useMemo(() => {
+    if (hasProPlan && portfolio.subdomain && appOrigin) {
+      try {
+        const originUrl = new URL(appOrigin);
+        return `${originUrl.protocol}//${portfolio.subdomain}.${originUrl.host}`;
+      } catch (e) {
+        return `/${portfolio.handle}`;
+      }
+    }
+    return `/${portfolio.handle}`;
+  }, [hasProPlan, portfolio.subdomain, portfolio.handle, appOrigin]);
+
+  const displayUrl = useMemo(() => {
+    if (hasProPlan && portfolio.subdomain && appOrigin) {
+      try {
+        const originUrl = new URL(appOrigin);
+        return `${portfolio.subdomain}.${originUrl.host}`;
+      } catch (e) {
+        return `/${portfolio.handle}`;
+      }
+    }
+    return `/${portfolio.handle}`;
+  }, [hasProPlan, portfolio.subdomain, portfolio.handle, appOrigin]);
+
+  const displayContent = editedContent || content;
+  const hasChanges = JSON.stringify(content) !== JSON.stringify(editedContent) && !!editedContent;
   const visibleSections = mergeVisibleSections(displayContent?.visibleSections);
   const visibleSectionCount = PORTFOLIO_SECTION_REGISTRY.filter((section) =>
     isSectionVisible(visibleSections, section.key)
@@ -356,12 +400,11 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-8">
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background">
+      <Card className="border-1">
         <CardHeader className="space-y-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Dashboard / Portfolio</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight">Portfolio Command Center</h1>
+              <h1 className="mt-2 text-3xl tracking-tight">Portfolio Command Center</h1>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Redesign, edit, and publish your public portfolio from one place.
               </p>
@@ -379,7 +422,7 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl border bg-background/70 p-4">
               <p className="text-xs text-muted-foreground">Public URL</p>
-              <p className="mt-1 truncate font-medium">/{portfolio.handle}</p>
+              <p className="mt-1 truncate font-medium">{displayUrl}</p>
             </div>
             <div className="rounded-xl border bg-background/70 p-4">
               <p className="text-xs text-muted-foreground">Template</p>
@@ -393,18 +436,54 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
         </CardHeader>
       </Card>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">Manage publishing, content and section visibility.</div>
-        {content && !editMode && (
-          <div className="flex gap-2">
+      {/* Floating Action Bar */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 px-4 w-full max-w-2xl animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-background/80 backdrop-blur-xl border border-primary/20 rounded-full p-2 flex items-center justify-between gap-4 ring-1 ring-black/5">
+            <div className="flex items-center gap-2 pl-4">
+              <div className="size-2 bg-yellow-400 rounded-full animate-pulse" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Unsaved Changes</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" onClick={handleCancel} disabled={saveMutation.isPending} className="rounded-full h-9">
+                <X className="size-4 mr-2" />
+                Discard
+              </Button>
+              <Button onClick={handleSave} disabled={saveMutation.isPending} className="rounded-full h-9 px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                {saveMutation.isPending ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Save className="size-4 mr-2" />}
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-4 px-1">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 group">
+            <Switch
+              id="publish-toggle"
+              checked={isPublished}
+              onCheckedChange={handlePublishChange}
+              disabled={isPending}
+              className="data-[state=checked]:bg-green-500"
+            />
+            <Label htmlFor="publish-toggle" className="cursor-pointer text-sm font-semibold text-muted-foreground group-data-[state=checked]:text-foreground transition-colors">
+              Publicly Live
+            </Label>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {content && (
             <Dialog open={showSyncDialog} onOpenChange={setShowSyncDialog}>
               <DialogTrigger asChild>
-                <Button variant="outline">
-                  <RefreshCw className="size-4 mr-2" />
-                  Sync from Website
+                <Button variant="outline" size="sm" className="h-9 gap-2">
+                  <RefreshCw className="size-4" />
+                  <span className="hidden sm:inline">Sync content</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Sync from Website</DialogTitle>
                   <DialogDescription>
@@ -419,6 +498,7 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
                       placeholder="https://your-old-site.com"
                       value={syncUrl}
                       onChange={(e) => setSyncUrl(e.target.value)}
+                      className="h-10"
                     />
                   </div>
                 </div>
@@ -431,863 +511,258 @@ export function PortfolioClient({ portfolio, content }: PortfolioClientProps) {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={() => setEditMode(true)}>
-              <Pencil className="size-4 mr-2" />
-              Edit Content
+          )}
+
+          <Select defaultValue={portfolio.template} onValueChange={handleTemplateChange} disabled={isPending}>
+            <SelectTrigger className="w-[140px] h-9 font-medium">
+              <SelectValue placeholder="Template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="landing">Landing</SelectItem>
+              <SelectItem value="modern">Modern</SelectItem>
+              <SelectItem value="veil">Veil</SelectItem>
+              <SelectItem value="bold">Bold</SelectItem>
+              <SelectItem value="editorial">Editorial</SelectItem>
+              <SelectItem value="gallery">Gallery</SelectItem>
+              <SelectItem value="minimal">Minimal</SelectItem>
+              <SelectItem value="interactive">Interactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {isPublished && (
+            <Button variant="outline" size="sm" asChild className="h-9 gap-2">
+              <Link href={portfolioLink} target="_blank">
+                <Eye className="size-4" />
+                <span className="hidden sm:inline">Preview Live</span>
+              </Link>
             </Button>
-          </div>
-        )}
-        {editMode && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancel} disabled={saveMutation.isPending}>
-              <X className="size-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Save className="size-4 mr-2" />}
-              Save Changes
-            </Button>
-          </div>
-        )}
+          )}
+
+          <Button size="icon" variant="ghost" onClick={handleRegenerate} disabled={isRegenerating} className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10">
+            {isRegenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Visibility */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Visibility</CardTitle>
-                <CardDescription>Control whether your portfolio is publicly accessible.</CardDescription>
+      {
+        displayContent && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="flex flex-col lg:flex-row gap-8 items-start">
+            <Card className="w-full lg:w-72 shrink-0 overflow-hidden border-primary/10 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-md sticky top-6">
+              <div className="p-5 bg-primary/5 border-b">
+                <h3 className="text-sm tracking-tight">Command Center</h3>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Navigation & Control</p>
               </div>
-              <Globe className="size-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between py-2">
-            <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium leading-none">Publish Portfolio</span>
-              <span className="text-sm text-muted-foreground">
-                {content ? "Make your profile visible" : "Generate content first"}
-              </span>
-            </div>
-            <Switch
-              checked={isPublished}
-              onCheckedChange={handlePublishChange}
-              disabled={isPending}
-            />
-          </CardContent>
-          <CardFooter className="justify-end border-t bg-muted/50 py-3">
-            {isPublished && (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={portfolioLink} target="_blank">
-                  <ExternalLink className="size-3.5 mr-1.5" />
-                  View
-                </Link>
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-
-        {/* Design */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Design & Template</CardTitle>
-            <CardDescription>Choose your portfolio layout style.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm">Template</Label>
-              <Select defaultValue={portfolio.template} onValueChange={handleTemplateChange} disabled={isPending}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="landing">Landing</SelectItem>
-                  <SelectItem value="modern">Modern</SelectItem>
-                  <SelectItem value="veil">Veil (Minimal)</SelectItem>
-                  <SelectItem value="bold">Bold (Dark)</SelectItem>
-                  <SelectItem value="editorial">Editorial</SelectItem>
-                  <SelectItem value="gallery">Gallery</SelectItem>
-                  <SelectItem value="minimal">Minimal</SelectItem>
-                  <SelectItem value="interactive">Interactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="bg-muted p-3 rounded-lg flex items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <h4 className="text-sm font-medium">AI Content</h4>
-                <p className="text-xs text-muted-foreground">
-                  {content ? "Regenerate copy" : "Generate with AI"}
-                </p>
-              </div>
-              <Button size="sm" onClick={handleRegenerate} disabled={isRegenerating} className="shrink-0">
-                {isRegenerating ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Sparkles className="size-4" />
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Editing Mode</CardTitle>
-            <CardDescription>Toggle advanced editing to manually curate every section.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border p-3">
-              <p className="text-sm font-medium">Current mode</p>
-              <p className="mt-1 text-sm text-muted-foreground">{editMode ? "Manual editing enabled" : "Preview mode"}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-sm font-medium">Sections visible</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {visibleSectionCount} of {PORTFOLIO_SECTION_REGISTRY.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {displayContent && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Section Visibility</CardTitle>
-            <CardDescription>Choose which sections appear on your public portfolio.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {PORTFOLIO_SECTION_REGISTRY.map((section) => {
-              const checked = isContentSectionVisible(section.key);
-              return (
-                <div key={section.key} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">{section.label}</p>
-                    <p className="text-xs text-muted-foreground">Key: {section.key}</p>
+              <TabsList className="flex flex-col h-auto bg-transparent p-3 gap-1.5 w-full justify-start items-stretch">
+                {[
+                  { key: "hero", label: "Hero Section" },
+                  { key: "about", label: "About Me" },
+                  { key: "services", label: "My Services" },
+                  { key: "projects", label: "Projects" },
+                  { key: "products", label: "Products" },
+                  { key: "history", label: "Work History" },
+                  { key: "testimonials", label: "Testimonials" },
+                  { key: "faq", label: "FAQ / Support" },
+                  { key: "gallery", label: "Media Gallery" },
+                  { key: "cta", label: "Call to Action" },
+                  { key: "socials", label: "Social Links" },
+                ].map((item) => (
+                  <div key={item.key} className="flex items-center group">
+                    <TabsTrigger
+                      value={item.key}
+                      className="flex-1 justify-start gap-3 px-4 py-2.5 text-sm font-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-xl"
+                    >
+                      <span>{item.label}</span>
+                    </TabsTrigger>
                   </div>
-                  <Switch
-                    checked={checked}
-                    disabled={!editMode}
-                    onCheckedChange={(nextChecked) => {
-                      if (editMode) {
-                        updateVisibleSection(section.key, nextChecked);
-                      }
-                    }}
+                ))}
+              </TabsList>
+              <div className="p-5 bg-muted/30 border-t space-y-3">
+                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span>Health Score</span>
+                  <span className="text-primary">{Math.round((visibleSectionCount / 11) * 100)}%</span>
+                </div>
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden p-0.5">
+                  <div
+                    className="h-full bg-primary transition-all duration-1000 ease-out rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                    style={{ width: `${(visibleSectionCount / 11) * 100}%` }}
                   />
                 </div>
-              );
-            })}
-            {!editMode && <p className="text-xs text-muted-foreground">Enable edit mode to change section visibility.</p>}
-          </CardContent>
-        </Card>
-      )}
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Aim for 80%+ visibility for the best visitor engagement.
+                </p>
+              </div>
+            </Card>
 
-      {/* Content Editor */}
-      {displayContent && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Content {editMode ? "Editor" : "Preview"}</CardTitle>
-            <CardDescription>
-              {editMode ? "Edit your portfolio content below." : "AI-generated content powering your portfolio."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="multiple" defaultValue={["hero", "socials"]} className="w-full">
-              {/* Hero */}
-              {isContentSectionVisible("hero") && (
-                <AccordionItem value="hero">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Globe className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Hero Section</span>
+            <div className="flex-1 min-w-0 w-full animate-in fade-in slide-in-from-right-4 duration-500">
+              <Card className="border-primary/10 shadow-2xl shadow-primary/5 min-h-[600px] flex flex-col bg-background/40 backdrop-blur-sm overflow-hidden border-2 border-primary/5">
+                <CardHeader className="py-6 px-8 border-b bg-muted/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-normal tracking-tight capitalize">{activeTab}</h2>
+                      </div>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {editMode ? (
-                      <div className="space-y-3 pt-2">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Headline</Label>
-                          <Input
-                            value={displayContent.hero?.headline || ""}
-                            onChange={(e) => updateHero("headline", e.target.value)}
-                            placeholder="Your headline"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Subheadline</Label>
-                          <Textarea
-                            value={displayContent.hero?.subheadline || ""}
-                            onChange={(e) => updateHero("subheadline", e.target.value)}
-                            placeholder="Your subheadline"
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-muted p-4 rounded-lg space-y-1 pt-2">
-                        <p className="font-semibold text-lg">{displayContent.hero?.headline}</p>
-                        <p className="text-sm text-muted-foreground">{displayContent.hero?.subheadline}</p>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Section Visibility */}
-              <AccordionItem value="section-visibility">
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <Globe className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Section Visibility</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="pt-2 space-y-3">
-                    {[
-                      { key: "about", label: "About" },
-                      { key: "services", label: "Services" },
-                      { key: "projects", label: "Projects" },
-                      { key: "products", label: "Products" },
-                      { key: "history", label: "History" },
-                      { key: "testimonials", label: "Testimonials" },
-                      { key: "faq", label: "FAQ" },
-                      { key: "gallery", label: "Gallery" },
-                      { key: "cta", label: "CTA" },
-                      { key: "socials", label: "Social Links" },
-                    ].map((item) => (
-                      <div key={item.key} className="flex items-center justify-between rounded-lg bg-muted p-3">
-                        <Label className="text-sm font-medium">{item.label}</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 bg-muted/50 px-3 py-1.5 rounded-full border">
+                        <Label htmlFor={`${activeTab}-visibility`} className="text-xs font-normal cursor-pointer">Visible</Label>
                         <Switch
-                          checked={isContentSectionVisible(item.key as PortfolioSectionKey)}
-                          onCheckedChange={(checked) => {
-                            if (editMode) {
-                              updateVisibleSection(item.key as PortfolioSectionKey, checked);
-                            }
-                          }}
-                          disabled={!editMode}
+                          id={`${activeTab}-visibility`}
+                          checked={activeTab === 'socials' ? true : isContentSectionVisible(activeTab as PortfolioSectionKey)}
+                          disabled={activeTab === 'socials'}
+                          onCheckedChange={(checked) => updateVisibleSection(activeTab as PortfolioSectionKey, checked)}
+                          className="scale-75 data-[state=checked]:bg-primary"
                         />
                       </div>
-                    ))}
-                    {!editMode && <p className="text-xs text-muted-foreground">Switch to edit mode to change section visibility.</p>}
+                    </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* About */}
-              {isContentSectionVisible("about") && (
-                <AccordionItem value="about">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">About Section</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {editMode ? (
-                      <Textarea
-                        value={displayContent.about?.paragraph || ""}
-                        onChange={(e) => updateAbout(e.target.value)}
-                        placeholder="Tell visitors about yourself..."
-                        rows={6}
-                        className="pt-2"
-                      />
-                    ) : (
-                      <div className="bg-muted p-4 rounded-lg pt-2">
-                        <p className="text-sm leading-relaxed">{displayContent.about?.paragraph}</p>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Services */}
-              {isContentSectionVisible("services") && (
-                <AccordionItem value="services">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Services ({displayContent.services?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addService}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Service
-                          </Button>
-                        </div>
-                      )}
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {displayContent.services?.map((s, i) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <Input
-                                  value={s.title}
-                                  onChange={(e) => updateService(i, "title", e.target.value)}
-                                  placeholder="Service title"
-                                  className="font-medium"
-                                />
-                                <Textarea
-                                  value={s.description}
-                                  onChange={(e) => updateService(i, "description", e.target.value)}
-                                  placeholder="Service description"
-                                  rows={2}
-                                />
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeService(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-sm font-medium">{s.title}</p>
-                                <p className="text-xs text-muted-foreground">{s.description}</p>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Projects */}
-              {isContentSectionVisible("projects") && (
-                <AccordionItem value="projects">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Megaphone className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Projects ({displayContent.projects?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addProject}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Project
-                          </Button>
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {displayContent.projects?.map((p, i) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <Input
-                                  value={p.title}
-                                  onChange={(e) => updateProject(i, "title", e.target.value)}
-                                  placeholder="Project title"
-                                  className="font-medium"
-                                />
-                                <Textarea
-                                  value={p.description}
-                                  onChange={(e) => updateProject(i, "description", e.target.value)}
-                                  placeholder="Project description"
-                                  rows={2}
-                                />
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Result</Label>
-                                  <Input
-                                    value={p.result}
-                                    onChange={(e) => updateProject(i, "result", e.target.value)}
-                                    placeholder="Project result"
-                                  />
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeProject(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-sm font-medium">{p.title}</p>
-                                <p className="text-xs text-muted-foreground">{p.description}</p>
-                                <Separator className="my-1.5" />
-                                <p className="text-xs text-primary">Result: {p.result}</p>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Products */}
-              {isContentSectionVisible("products") && (
-                <AccordionItem value="products">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Products ({displayContent.products?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addProduct}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Product
-                          </Button>
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {displayContent.products?.map((p: any, i: number) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <Input
-                                  value={p.title}
-                                  onChange={(e) => updateProduct(i, "title", e.target.value)}
-                                  placeholder="Product title"
-                                  className="font-medium"
-                                />
-                                <Textarea
-                                  value={p.description}
-                                  onChange={(e) => updateProduct(i, "description", e.target.value)}
-                                  placeholder="Product description"
-                                  rows={2}
-                                />
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Price</Label>
-                                    <Input
-                                      value={p.price}
-                                      onChange={(e) => updateProduct(i, "price", e.target.value)}
-                                      placeholder="Price"
-                                    />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">URL</Label>
-                                    <Input
-                                      value={p.url}
-                                      onChange={(e) => updateProduct(i, "url", e.target.value)}
-                                      placeholder="Link"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Image URL</Label>
-                                  <Input
-                                    value={p.image}
-                                    onChange={(e) => updateProduct(i, "image", e.target.value)}
-                                    placeholder="Image URL"
-                                  />
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeProduct(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <div className="flex items-start gap-4">
-                                {p.image && (
-                                  <img src={p.image} alt={p.title} className="w-16 h-16 object-cover rounded-md" />
-                                )}
-                                <div>
-                                  <p className="text-sm font-medium">{p.title} <span className="text-muted-foreground ml-2">{p.price}</span></p>
-                                  <p className="text-xs text-muted-foreground mt-1">{p.description}</p>
-                                  {p.url && <a href={p.url} className="text-xs text-primary mt-1 inline-block">View Link</a>}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* History */}
-              {isContentSectionVisible("history") && (
-                <AccordionItem value="history">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">History ({displayContent.history?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addHistory}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add History Entry
-                          </Button>
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {displayContent.history?.map((h: any, i: number) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Role/Title</Label>
-                                    <Input
-                                      value={h.role}
-                                      onChange={(e) => updateHistory(i, "role", e.target.value)}
-                                      placeholder="Role"
-                                      className="font-medium"
-                                    />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Company</Label>
-                                    <Input
-                                      value={h.company}
-                                      onChange={(e) => updateHistory(i, "company", e.target.value)}
-                                      placeholder="Company"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Period</Label>
-                                  <Input
-                                    value={h.period}
-                                    onChange={(e) => updateHistory(i, "period", e.target.value)}
-                                    placeholder="e.g. 2020 - Present"
-                                  />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Description</Label>
-                                  <Textarea
-                                    value={h.description}
-                                    onChange={(e) => updateHistory(i, "description", e.target.value)}
-                                    placeholder="Description"
-                                    rows={2}
-                                  />
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeHistory(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium">{h.role}</p>
-                                  <span className="text-xs bg-background px-2 py-0.5 rounded-full">{h.period}</span>
-                                </div>
-                                <p className="text-xs font-medium text-muted-foreground mt-0.5">{h.company}</p>
-                                <p className="text-xs text-muted-foreground mt-2">{h.description}</p>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Testimonials */}
-              {isContentSectionVisible("testimonials") && (
-                <AccordionItem value="testimonials">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Testimonials ({displayContent.testimonials?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addTestimonial}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Testimonial
-                          </Button>
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {displayContent.testimonials?.map((t: any, i: number) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Quote</Label>
-                                  <Textarea
-                                    value={t.quote}
-                                    onChange={(e) => updateTestimonial(i, "quote", e.target.value)}
-                                    placeholder="Testimonial quote"
-                                    rows={3}
-                                  />
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Author</Label>
-                                    <Input
-                                      value={t.author}
-                                      onChange={(e) => updateTestimonial(i, "author", e.target.value)}
-                                      placeholder="Author name"
-                                    />
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Role/Company</Label>
-                                    <Input
-                                      value={t.role}
-                                      onChange={(e) => updateTestimonial(i, "role", e.target.value)}
-                                      placeholder="Role or Company"
-                                    />
-                                  </div>
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeTestimonial(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-sm italic">"{t.quote}"</p>
-                                <div className="mt-2 text-xs">
-                                  <span className="font-semibold">{t.author}</span>
-                                  {t.role && <span className="text-muted-foreground">, {t.role}</span>}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* FAQ */}
-              {isContentSectionVisible("faq") && (
-                <AccordionItem value="faq">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">FAQ ({displayContent.faq?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addFaq}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Question
-                          </Button>
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {displayContent.faq?.map((f: any, i: number) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2" : "space-y-1"}`}>
-                            {editMode ? (
-                              <>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Question</Label>
-                                  <Input
-                                    value={f.question}
-                                    onChange={(e) => updateFaq(i, "question", e.target.value)}
-                                    placeholder="Question"
-                                    className="font-medium"
-                                  />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Answer</Label>
-                                  <Textarea
-                                    value={f.answer}
-                                    onChange={(e) => updateFaq(i, "answer", e.target.value)}
-                                    placeholder="Answer"
-                                    rows={3}
-                                  />
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeFaq(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-sm font-medium">{f.question}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{f.answer}</p>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Gallery */}
-              {isContentSectionVisible("gallery") && (
-                <AccordionItem value="gallery">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Megaphone className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Gallery ({displayContent.gallery?.length || 0})</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 space-y-3">
-                      {editMode && (
-                        <div className="flex justify-end">
-                          <Button size="sm" variant="outline" onClick={addGalleryImage}>
-                            <Plus className="size-3.5 mr-1" />
-                            Add Image
-                          </Button>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-3">
-                        {displayContent.gallery?.map((g: any, i: number) => (
-                          <div key={i} className={`bg-muted p-3 rounded-lg ${editMode ? "space-y-2 col-span-2" : "space-y-1 col-span-1"}`}>
-                            {editMode ? (
-                              <>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Image URL</Label>
-                                  <Input
-                                    value={g.url}
-                                    onChange={(e) => updateGallery(i, "url", e.target.value)}
-                                    placeholder="https://..."
-                                  />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-muted-foreground">Caption</Label>
-                                  <Input
-                                    value={g.caption}
-                                    onChange={(e) => updateGallery(i, "caption", e.target.value)}
-                                    placeholder="Image caption"
-                                  />
-                                </div>
-                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full" onClick={() => removeGalleryImage(i)}>
-                                  <Trash2 className="size-3.5 mr-1" />
-                                  Remove
-                                </Button>
-                              </>
-                            ) : (
-                              <div className="space-y-1">
-                                <img src={g.url} alt={g.caption} className="w-full h-24 object-cover rounded-md bg-background" />
-                                <p className="text-[10px] text-center text-muted-foreground truncate">{g.caption}</p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* CTA */}
-              {isContentSectionVisible("cta") && (
-                <AccordionItem value="cta">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Call to Action</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {editMode ? (
-                      <div className="space-y-3 pt-2">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Headline</Label>
-                          <Input
-                            value={displayContent.cta?.headline || ""}
-                            onChange={(e) => updateCta("headline", e.target.value)}
-                            placeholder="CTA headline"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Subtext</Label>
-                          <Textarea
-                            value={displayContent.cta?.subtext || ""}
-                            onChange={(e) => updateCta("subtext", e.target.value)}
-                            placeholder="CTA subtext"
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-muted p-4 rounded-lg space-y-1 pt-2">
-                        <p className="font-semibold">{displayContent.cta?.headline}</p>
-                        <p className="text-sm text-muted-foreground">{displayContent.cta?.subtext}</p>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Social Links */}
-              <AccordionItem value="socials">
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <Share2 className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Social Links</span>
-                    {!editMode && <span className="text-xs text-muted-foreground ml-2">(Edit mode only)</span>}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="pt-2 space-y-4">
-                    {availablePlatforms.map(({ platform, label }) => {
-                      const socialLink = getSocialLink(platform);
-                      const isEnabled = socialLink?.enabled || false;
-                      const url = socialLink?.url || "";
-
-                      return (
-                        <div key={platform} className="bg-muted p-3 rounded-lg space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">{label}</Label>
-                            <Switch
-                              checked={editMode ? isEnabled : (socialLink?.enabled || false)}
-                              onCheckedChange={(checked) => {
-                                if (editMode) {
-                                  updateSocialLink(platform, "enabled", checked);
-                                }
-                              }}
-                              disabled={!editMode}
-                            />
-                          </div>
-                          {editMode && isEnabled && (
-                            <Input
-                              value={url}
-                              onChange={(e) => updateSocialLink(platform, "url", e.target.value)}
-                              placeholder={`https://${platform}.com/yourprofile`}
-                            />
-                          )}
-                          {!editMode && socialLink?.enabled && (
-                            <p className="text-xs text-muted-foreground truncate">{socialLink.url}</p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-      )}
+                </CardHeader>
+                <CardContent className="p-8 flex-1">
+                  <TabsContent value="hero" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <HeroSection
+                      editMode={true}
+                      content={displayContent?.hero || null}
+                      onUpdate={updateHero}
+                      isVisible={isContentSectionVisible("hero")}
+                      onVisibilityChange={(checked) => updateVisibleSection("hero", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="about" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AboutSection
+                      editMode={true}
+                      content={displayContent?.about || null}
+                      onUpdate={updateAbout}
+                      isVisible={isContentSectionVisible("about")}
+                      onVisibilityChange={(checked) => updateVisibleSection("about", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="services" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <ServicesSection
+                      editMode={true}
+                      content={displayContent?.services || null}
+                      onUpdate={updateService}
+                      onAdd={addService}
+                      onRemove={removeService}
+                      isVisible={isContentSectionVisible("services")}
+                      onVisibilityChange={(checked) => updateVisibleSection("services", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="projects" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <ProjectsSection
+                      editMode={true}
+                      content={displayContent?.projects || null}
+                      onUpdate={updateProject}
+                      onAdd={addProject}
+                      onRemove={removeProject}
+                      isVisible={isContentSectionVisible("projects")}
+                      onVisibilityChange={(checked) => updateVisibleSection("projects", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="products" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <ProductsSection
+                      editMode={true}
+                      content={displayContent?.products || null}
+                      onUpdate={updateProduct}
+                      onAdd={addProduct}
+                      onRemove={removeProduct}
+                      isVisible={isContentSectionVisible("products")}
+                      onVisibilityChange={(checked) => updateVisibleSection("products", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="history" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <HistorySection
+                      editMode={true}
+                      content={displayContent?.history || null}
+                      onUpdate={updateHistory}
+                      onAdd={addHistory}
+                      onRemove={removeHistory}
+                      isVisible={isContentSectionVisible("history")}
+                      onVisibilityChange={(checked) => updateVisibleSection("history", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="testimonials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <TestimonialsSection
+                      editMode={true}
+                      content={displayContent?.testimonials || null}
+                      onUpdate={updateTestimonial}
+                      onAdd={addTestimonial}
+                      onRemove={removeTestimonial}
+                      isVisible={isContentSectionVisible("testimonials")}
+                      onVisibilityChange={(checked) => updateVisibleSection("testimonials", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="faq" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <FAQSection
+                      editMode={true}
+                      content={displayContent?.faq || null}
+                      onUpdate={updateFaq}
+                      onAdd={addFaq}
+                      onRemove={removeFaq}
+                      isVisible={isContentSectionVisible("faq")}
+                      onVisibilityChange={(checked) => updateVisibleSection("faq", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="gallery" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <GallerySection
+                      editMode={true}
+                      content={displayContent?.gallery || null}
+                      onUpdate={updateGallery}
+                      onAdd={addGalleryImage}
+                      onRemove={removeGalleryImage}
+                      isVisible={isContentSectionVisible("gallery")}
+                      onVisibilityChange={(checked) => updateVisibleSection("gallery", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="cta" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <CTASection
+                      editMode={true}
+                      content={displayContent?.cta || null}
+                      onUpdate={updateCta}
+                      isVisible={isContentSectionVisible("cta")}
+                      onVisibilityChange={(checked) => updateVisibleSection("cta", checked)}
+                    />
+                  </TabsContent>
+                  <TabsContent value="socials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <SocialLinksSection
+                      editMode={true}
+                      availablePlatforms={availablePlatforms}
+                      getSocialLink={getSocialLink}
+                      onUpdate={updateSocialLink}
+                      isVisible={true}
+                    />
+                  </TabsContent>
+                </CardContent>
+                {/* <div className="p-4 bg-muted/5 border-t text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
+                    <Layout className="size-3" />
+                    Portfolio AI Command Center &copy; 2024
+                  </p>
+                </div> */}
+              </Card>
+            </div>
+          </Tabs>
+        )
+      }
 
       {/* No content yet */}
-      {!content && (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Sparkles className="size-10 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-1">No Content Generated Yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Click the AI button above to generate your portfolio content.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      {
+        !content && (
+          <Card className="border-dashed border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+            <CardContent className="py-20 text-center">
+              <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/5">
+                <Sparkles className="size-10 text-primary animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight mb-2">No Content Yet</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto mb-8">
+                Your portfolio is a blank canvas. Let our AI help you generate a professional presence in seconds.
+              </p>
+              <Button size="lg" onClick={handleRegenerate} disabled={isRegenerating} className="rounded-full px-8 shadow-xl shadow-primary/20">
+                {isRegenerating ? <Loader2 className="size-5 mr-2 animate-spin" /> : <Sparkles className="size-5 mr-2" />}
+                Generate My Portfolio
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      }
+    </div >
   );
 }

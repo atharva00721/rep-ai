@@ -45,7 +45,7 @@ export default function HeroSectionV2() {
                 {/* Immersive Background Image */}
                 <div className="absolute inset-0 z-0">
                     <Image
-                        src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
+                        src="/image.png"
                         alt="Background"
                         fill
                         className="object-cover opacity-50 mix-blend-luminosity"
