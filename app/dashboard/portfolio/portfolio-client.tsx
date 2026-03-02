@@ -27,10 +27,12 @@ import { SocialLinksSection } from "./components/SocialLinksSection";
 import Link from "next/link";
 import { usePortfolioActions } from "./_hooks/use-portfolio-actions";
 import { usePortfolioEditorStore } from "./_hooks/use-portfolio-editor-store";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { PortfolioContent } from "../actions";
 import type { SocialLink, SocialPlatform } from "@/lib/validation/portfolio-schema";
+import { AVAILABLE_SOCIAL_PLATFORMS, PORTFOLIO_EDITOR_TABS } from "./_constants/portfolio-editor";
+import { usePortfolioContentEditors } from "./_hooks/use-portfolio-content-editors";
 import {
   isSectionVisible,
   mergeVisibleSections,
@@ -50,9 +52,6 @@ interface PortfolioClientProps {
   content: PortfolioContent | null;
 }
 
-const getVisibleSections = (content: PortfolioContent | null | undefined) => ({
-  ...mergeVisibleSections(content?.visibleSections),
-});
 
 export function PortfolioClient({ portfolio, plan = "free", content }: PortfolioClientProps) {
   const {
@@ -94,212 +93,34 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
     setEditedContent(content ? { ...content, visibleSections: mergeVisibleSections(content.visibleSections) } : content);
   };
 
-  const updateHero = (field: string, value: string) => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      hero: { ...editedContent.hero, [field]: value }
-    });
-  };
-
-  const updateAbout = (value: string) => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      about: { paragraph: value }
-    });
-  };
-
-  const updateCta = (field: string, value: string) => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      cta: { ...editedContent.cta, [field]: value }
-    });
-  };
-
-  const updateService = (index: number, field: string, value: string) => {
-    if (!editedContent?.services) return;
-    const newServices = [...editedContent.services];
-    newServices[index] = { ...newServices[index], [field]: value };
-    setEditedContent({ ...editedContent, services: newServices });
-  };
-
-  const addService = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      services: [...(editedContent.services || []), { title: "New Service", description: "Service description" }]
-    });
-  };
-
-  const removeService = (index: number) => {
-    if (!editedContent?.services) return;
-    const newServices = editedContent.services.filter((_, i) => i !== index);
-    setEditedContent({ ...editedContent, services: newServices });
-  };
-
-  const updateProject = (index: number, field: string, value: string) => {
-    if (!editedContent?.projects) return;
-    const newProjects = [...editedContent.projects];
-    newProjects[index] = { ...newProjects[index], [field]: value };
-    setEditedContent({ ...editedContent, projects: newProjects });
-  };
-
-  const addProject = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      projects: [...(editedContent.projects || []), { title: "New Project", description: "Project description", result: "Project result" }]
-    });
-  };
-
-  const removeProject = (index: number) => {
-    if (!editedContent?.projects) return;
-    const newProjects = editedContent.projects.filter((_, i) => i !== index);
-    setEditedContent({ ...editedContent, projects: newProjects });
-  };
-
-  const updateProduct = (index: number, field: string, value: string) => {
-    if (!editedContent?.products) return;
-    const newProducts = [...editedContent.products];
-    newProducts[index] = { ...newProducts[index], [field]: value };
-    setEditedContent({ ...editedContent, products: newProducts });
-  };
-
-  const addProduct = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      products: [...(editedContent.products || []), { title: "New Product", description: "Description", price: "$0.00", url: "", image: "" }]
-    });
-  };
-
-  const removeProduct = (index: number) => {
-    if (!editedContent?.products) return;
-    const newProducts = editedContent.products.filter((_: any, i: number) => i !== index);
-    setEditedContent({ ...editedContent, products: newProducts });
-  };
-
-  const updateHistory = (index: number, field: string, value: string) => {
-    if (!editedContent?.history) return;
-    const newHistory = [...editedContent.history];
-    newHistory[index] = { ...newHistory[index], [field]: value };
-    setEditedContent({ ...editedContent, history: newHistory });
-  };
-
-  const addHistory = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      history: [...(editedContent.history || []), { role: "Role", company: "Company", period: "2020-2024", description: "Description" }]
-    });
-  };
-
-  const removeHistory = (index: number) => {
-    if (!editedContent?.history) return;
-    const newHistory = editedContent.history.filter((_: any, i: number) => i !== index);
-    setEditedContent({ ...editedContent, history: newHistory });
-  };
-
-  const updateTestimonial = (index: number, field: string, value: string) => {
-    if (!editedContent?.testimonials) return;
-    const newTestimonials = [...editedContent.testimonials];
-    newTestimonials[index] = { ...newTestimonials[index], [field]: value };
-    setEditedContent({ ...editedContent, testimonials: newTestimonials });
-  };
-
-  const addTestimonial = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      testimonials: [...(editedContent.testimonials || []), { quote: "Great work!", author: "John Doe", role: "CEO" }]
-    });
-  };
-
-  const removeTestimonial = (index: number) => {
-    if (!editedContent?.testimonials) return;
-    const newTestimonials = editedContent.testimonials.filter((_: any, i: number) => i !== index);
-    setEditedContent({ ...editedContent, testimonials: newTestimonials });
-  };
-
-  const updateFaq = (index: number, field: string, value: string) => {
-    if (!editedContent?.faq) return;
-    const newFaq = [...editedContent.faq];
-    newFaq[index] = { ...newFaq[index], [field]: value };
-    setEditedContent({ ...editedContent, faq: newFaq });
-  };
-
-  const addFaq = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      faq: [...(editedContent.faq || []), { question: "Question?", answer: "Answer" }]
-    });
-  };
-
-  const removeFaq = (index: number) => {
-    if (!editedContent?.faq) return;
-    const newFaq = editedContent.faq.filter((_: any, i: number) => i !== index);
-    setEditedContent({ ...editedContent, faq: newFaq });
-  };
-
-  const updateGallery = (index: number, field: string, value: string) => {
-    if (!editedContent?.gallery) return;
-    const newGallery = [...editedContent.gallery];
-    newGallery[index] = { ...newGallery[index], [field]: value };
-    setEditedContent({ ...editedContent, gallery: newGallery });
-  };
-
-  const addGalleryImage = () => {
-    if (!editedContent) return;
-    setEditedContent({
-      ...editedContent,
-      gallery: [...(editedContent.gallery || []), { url: "https://example.com/image.jpg", caption: "Caption" }]
-    });
-  };
-
-  const removeGalleryImage = (index: number) => {
-    if (!editedContent?.gallery) return;
-    const newGallery = editedContent.gallery.filter((_: any, i: number) => i !== index);
-    setEditedContent({ ...editedContent, gallery: newGallery });
-  };
-
-  const updateVisibleSection = (section: PortfolioSectionKey, visible: boolean) => {
-    if (!editedContent) return;
-    const current = mergeVisibleSections(editedContent.visibleSections);
-    const next = visible ? [...new Set([...current, section])] : current.filter((key) => key !== section);
-    setEditedContent({
-      ...editedContent,
-      visibleSections: mergeVisibleSections(next),
-    });
-  };
-
-  const updateSocialLink = (platform: SocialPlatform, field: "enabled" | "url", value: boolean | string) => {
-    if (!editedContent) return;
-
-    const currentLinks = editedContent.socialLinks || [];
-    const existingIndex = currentLinks.findIndex((l) => l.platform === platform);
-
-    let newLinks: SocialLink[];
-    if (existingIndex >= 0) {
-      newLinks = [...currentLinks];
-      newLinks[existingIndex] = {
-        ...newLinks[existingIndex],
-        [field]: value,
-        platform // ensure platform type is correct
-      };
-    } else {
-      newLinks = [...currentLinks, {
-        platform,
-        enabled: field === "enabled" ? (value as boolean) : false,
-        url: field === "url" ? (value as string) : ""
-      }];
-    }
-
-    const newContent = { ...editedContent, socialLinks: newLinks };
-    setEditedContent(newContent);
-  };
+  const {
+    updateHero,
+    updateAbout,
+    updateCta,
+    updateService,
+    addService,
+    removeService,
+    updateProject,
+    addProject,
+    removeProject,
+    updateProduct,
+    addProduct,
+    removeProduct,
+    updateHistory,
+    addHistory,
+    removeHistory,
+    updateTestimonial,
+    addTestimonial,
+    removeTestimonial,
+    updateFaq,
+    addFaq,
+    removeFaq,
+    updateGallery,
+    addGalleryImage,
+    removeGalleryImage,
+    updateVisibleSection,
+    updateSocialLink,
+  } = usePortfolioContentEditors({ editedContent, setEditedContent });
 
   const handleSyncFromWebsite = async () => {
     if (!syncUrl.trim()) return;
@@ -341,19 +162,11 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
     }
   };
 
-  const getSocialLink = (platform: SocialPlatform): SocialLink | undefined => {
-    return displayContent?.socialLinks?.find((l) => l.platform === platform);
-  };
+  const displayContent = editedContent || content;
 
-  const availablePlatforms: { platform: SocialPlatform; label: string }[] = [
-    { platform: "twitter", label: "Twitter/X" },
-    { platform: "linkedin", label: "LinkedIn" },
-    { platform: "github", label: "GitHub" },
-    { platform: "instagram", label: "Instagram" },
-    { platform: "youtube", label: "YouTube" },
-    { platform: "facebook", label: "Facebook" },
-    { platform: "website", label: "Website" },
-  ];
+  const getSocialLink = (platform: SocialPlatform): SocialLink | undefined => {
+    return displayContent?.socialLinks?.find((link) => link.platform === platform);
+  };
 
   const appOrigin = useMemo(() => {
     const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -370,7 +183,7 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
         const originUrl = new URL(appOrigin);
         const host = originUrl.host.replace(/^www\./, "");
         return `${originUrl.protocol}//${portfolio.subdomain}.${host}`;
-      } catch (e) {
+      } catch {
         return `/${portfolio.handle}`;
       }
     }
@@ -383,14 +196,13 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
         const originUrl = new URL(appOrigin);
         const host = originUrl.host.replace(/^www\./, "");
         return `${portfolio.subdomain}.${host}`;
-      } catch (e) {
+      } catch {
         return `/${portfolio.handle}`;
       }
     }
     return `/${portfolio.handle}`;
   }, [hasProPlan, portfolio.subdomain, portfolio.handle, appOrigin]);
 
-  const displayContent = editedContent || content;
   const hasChanges = JSON.stringify(content) !== JSON.stringify(editedContent) && !!editedContent;
   const visibleSections = mergeVisibleSections(displayContent?.visibleSections);
   const visibleSectionCount = PORTFOLIO_SECTION_REGISTRY.filter((section) =>
@@ -555,19 +367,7 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Navigation & Control</p>
               </div>
               <TabsList className="flex flex-col h-auto bg-transparent p-3 gap-1.5 w-full justify-start items-stretch">
-                {[
-                  { key: "hero", label: "Hero Section" },
-                  { key: "about", label: "About Me" },
-                  { key: "services", label: "My Services" },
-                  { key: "projects", label: "Projects" },
-                  { key: "products", label: "Products" },
-                  { key: "history", label: "Work History" },
-                  { key: "testimonials", label: "Testimonials" },
-                  { key: "faq", label: "FAQ / Support" },
-                  { key: "gallery", label: "Media Gallery" },
-                  { key: "cta", label: "Call to Action" },
-                  { key: "socials", label: "Social Links" },
-                ].map((item) => (
+                {PORTFOLIO_EDITOR_TABS.map((item) => (
                   <div key={item.key} className="flex items-center group">
                     <TabsTrigger
                       value={item.key}
@@ -726,7 +526,7 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
                   <TabsContent value="socials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <SocialLinksSection
                       editMode={true}
-                      availablePlatforms={availablePlatforms}
+                      availablePlatforms={AVAILABLE_SOCIAL_PLATFORMS}
                       getSocialLink={getSocialLink}
                       onUpdate={updateSocialLink}
                       isVisible={true}
