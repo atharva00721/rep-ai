@@ -12,6 +12,7 @@ import {
   BarChart3,
   BrainCircuit,
   CreditCard,
+  Globe,
 } from "lucide-react";
 
 import { NavMain } from "@/components/dashboard/nav-main";
@@ -90,6 +91,12 @@ export function AppSidebar({ credits, plan, userName, userEmail, userImage }: Ap
         url: "/dashboard/knowledge",
         icon: BookText,
         isActive: pathname.startsWith("/dashboard/knowledge"),
+      },
+      {
+        title: "Domains",
+        url: "/dashboard/domains",
+        icon: Globe,
+        isActive: pathname.startsWith("/dashboard/domains"),
       },
     ],
     projects: portfolios.map((p) => ({

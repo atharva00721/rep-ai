@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect, useTransition, useSyncExternalStore, useRef } from "react";
-import { updateHandle, updateSubdomain, deleteActivePortfolio, regeneratePortfolio, updateProfile } from "../actions";
+import { updateHandle, deleteActivePortfolio, regeneratePortfolio, updateProfile } from "../actions";
 import { toast } from "sonner";
 import { AnimatedTabs } from "@/components/ui/animated-tabs";
 
@@ -21,12 +21,10 @@ interface SettingsClientProps {
   };
   portfolio: {
     handle: string;
-    subdomain: string;
   };
-  canUseSubdomain: boolean;
 }
 
-export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsClientProps) {
+export function SettingsClient({ user, portfolio }: SettingsClientProps) {
   const { theme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
     () => () => { },
@@ -35,11 +33,9 @@ export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsCli
   );
   const [isPending, startTransition] = useTransition();
   const [handle, setHandle] = useState(portfolio.handle);
-  const [subdomain, setSubdomain] = useState(portfolio.subdomain);
   const [name, setName] = useState(user.name);
   const [image, setImage] = useState(user.image || "");
   const [handleError, setHandleError] = useState("");
-  const [subdomainError, setSubdomainError] = useState("");
   const [isDeletingPortfolio, setIsDeletingPortfolio] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -89,35 +85,8 @@ export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsCli
   };
 
 
-  const validateSubdomainFormat = (value: string) => {
-    if (!value) {
-      setSubdomainError("");
-      return true;
-    }
-    if (value.length < 3) {
-      setSubdomainError("Must be at least 3 characters");
-      return false;
-    }
-    if (value.length > 30) {
-      setSubdomainError("Must be 30 characters or fewer");
-      return false;
-    }
-    if (!/^[a-z0-9-]+$/.test(value)) {
-      setSubdomainError("Only lowercase letters, numbers, and hyphens");
-      return false;
-    }
-    setSubdomainError("");
-    return true;
-  };
-
-  const handleSubdomainChange = (value: string) => {
-    const normalized = value.toLowerCase().trim();
-    setSubdomain(normalized);
-    validateSubdomainFormat(normalized);
-  };
-
   const handleSaveProfile = () => {
-    if (!validateHandleFormat(handle) || !validateSubdomainFormat(subdomain)) return;
+    if (!validateHandleFormat(handle)) return;
 
     startTransition(async () => {
       try {
@@ -131,17 +100,12 @@ export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsCli
           promises.push(updateProfile({ name, image }));
         }
 
-        if (canUseSubdomain && subdomain !== portfolio.subdomain) {
-          promises.push(updateSubdomain(subdomain));
-        }
-
         await Promise.all(promises);
         toast.success("Profile updated successfully");
       } catch (error) {
         const msg = error instanceof Error ? error.message : "Failed to save";
         toast.error(msg);
         setHandleError(msg);
-        setSubdomainError(msg);
       }
     });
   };
@@ -223,9 +187,8 @@ export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsCli
   };
 
   const hasHandleChanged = handle !== portfolio.handle;
-  const hasSubdomainChanged = canUseSubdomain && subdomain !== portfolio.subdomain;
   const hasProfileChanged = name !== user.name || image !== (user.image || "");
-  const canSave = (hasHandleChanged || hasSubdomainChanged || hasProfileChanged) && !handleError && !subdomainError;
+  const canSave = (hasHandleChanged || hasProfileChanged) && !handleError;
 
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -284,10 +247,6 @@ export function SettingsClient({ user, portfolio, canUseSubdomain }: SettingsCli
                 image={image}
                 setImage={setImage}
                 handleError={handleError}
-                subdomain={subdomain}
-                handleSubdomainChange={handleSubdomainChange}
-                subdomainError={subdomainError}
-                canUseSubdomain={canUseSubdomain}
                 isPending={isPending}
                 isUploading={isUploading}
                 uploadProgress={uploadProgress}
