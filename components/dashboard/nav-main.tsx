@@ -73,14 +73,12 @@ export function NavMain({
 
                     return (
                         <SidebarMenuItem key={item.title}>
-                            <Link href={item.url} passHref legacyBehavior>
-                                <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
-                                    <a>
-                                        {item.icon && <item.icon />}
-                                        <span>{item.title}</span>
-                                    </a>
-                                </SidebarMenuButton>
-                            </Link>
+                            <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
+                                <Link href={item.url}>
+                                    {item.icon && <item.icon />}
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
                         </SidebarMenuItem>
                     );
                 })}
