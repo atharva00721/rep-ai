@@ -58,7 +58,7 @@ export default function Pricing() {
                                     <th scope="row" className="text-muted-foreground px-4 py-3 text-left text-sm font-medium">{feature}</th>
                                     {publicPricingTiers.map((plan) => (
                                         <td key={`${plan.name}-${feature}`} className="px-4 py-3 text-center align-middle">
-                                            {plan.features.includes(feature) ? (
+                                            {(plan.features as readonly string[]).includes(feature) ? (
                                                 <span className="inline-flex items-center justify-center" aria-label={`${plan.name} includes ${feature}`}>
                                                     <Check aria-hidden="true" className="text-primary size-4 shrink-0" />
                                                 </span>
