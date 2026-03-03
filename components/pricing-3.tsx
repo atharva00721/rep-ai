@@ -32,7 +32,7 @@ export default function Pricing() {
                             >
                                 <div>
                                     <div className="flex items-center justify-between gap-x-4 flex-wrap">
-                                        <h3 className={cn("text-lg font-semibold leading-8", isHighlighted ? "text-primary-foreground" : "text-foreground")}>
+                                        <h3 className={cn("text-lg leading-8", isHighlighted ? "text-primary-foreground" : "text-foreground")}>
                                             {plan.name}
                                         </h3>
                                         {isHighlighted && (

@@ -19,7 +19,7 @@ export default function WhyMimick() {
   ]
 
   return (
-    <section className="bg-muted/30 py-24 sm:py-32 border-t border-border/40">
+    <section className="py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-start">
           <div className="lg:col-span-5 lg:sticky lg:top-32">
@@ -36,7 +36,7 @@ export default function WhyMimick() {
           <div className="lg:col-span-6 flex flex-col gap-16">
             {points.map((point, i) => (
               <div key={i} className="group relative pl-8 before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-border hover:before:bg-primary/50 before:transition-colors">
-                <span className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full border border-primary/50 bg-background transition-colors group-hover:border-primary group-hover:bg-primary" />
+                {/* <span className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full border border-primary/50 bg-background transition-colors group-hover:border-primary group-hover:bg-primary" /> */}
                 <h3 className="text-xl font-medium text-foreground mb-4 tracking-tight">{point.title}</h3>
                 <p className="text-muted-foreground leading-relaxed text-base">
                   {point.description}
