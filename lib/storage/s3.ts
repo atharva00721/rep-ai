@@ -121,7 +121,9 @@ export async function deleteFile(key: string): Promise<void> {
 export function getKeyFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url);
-    return urlObj.pathname.slice(1);
+    // Decode percent-encoded characters (e.g. %20 → space) so the key
+    // matches what was actually stored in S3.
+    return decodeURIComponent(urlObj.pathname.slice(1));
   } catch {
     return null;
   }

@@ -131,6 +131,7 @@ export async function streamOnboardingChat({
   const modelMessages = await convertToModelMessages(messages);
 
   const modelToUse = resumeText ? "google/gemini-3-flash" : "moonshotai/Kimi-K2.5";
+  console.log(`[onboarding-agent] model=${modelToUse}, hasResumeText=${!!resumeText} (${resumeText?.length ?? 0} chars)`);
 
   const result = streamText({
     model: resolveChatModel(modelToUse),

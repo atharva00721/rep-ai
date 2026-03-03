@@ -547,9 +547,6 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
         !content && (
           <Card className="border-dashed border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
             <CardContent className="py-20 text-center">
-              <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/5">
-                <Sparkles className="size-10 text-primary animate-pulse" />
-              </div>
               <h3 className="text-2xl tracking-tight mb-2">No Content Yet</h3>
               <p className="text-muted-foreground max-w-sm mx-auto mb-8">
                 Your portfolio is a blank canvas. Let our AI help you generate a professional presence in seconds.

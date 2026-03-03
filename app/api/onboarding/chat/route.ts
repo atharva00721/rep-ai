@@ -85,9 +85,13 @@ export async function POST(request: Request) {
               }
 
               if (!buffer) {
+                console.log(`[onboarding] S3 failed, fetching public URL: ${pdfUrl}`);
                 const resp = await fetch(pdfUrl);
                 if (resp.ok) {
                   buffer = Buffer.from(await resp.arrayBuffer());
+                  console.log(`[onboarding] Public URL fetch succeeded, buffer size: ${buffer.length}`);
+                } else {
+                  console.warn(`[onboarding] Public URL fetch failed: ${resp.status} ${resp.statusText}`);
                 }
               }
 
@@ -98,6 +102,8 @@ export async function POST(request: Request) {
                 console.log(
                   `[onboarding] Extracted ${resumeText.length} chars from resume (${extraction.pageCount} pages)`
                 );
+              } else {
+                console.warn(`[onboarding] Buffer is null — resume will NOT be passed to the AI!`);
               }
 
               // 3. Strip the resume marker from the user message

@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MessageSquare, ArrowUpIcon, Paperclip, Upload, Loader2, CheckCircle } from "lucide-react";
+import { MessageSquare, ArrowUpIcon, Paperclip, Upload, Loader2, CheckCircle, FileText } from "lucide-react";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import {
   getDefaultSectionSelection,
   OnboardingMessageResponse,
@@ -89,23 +90,20 @@ export function OnboardingChat() {
 
     setIsUploadingResume(true);
     try {
-      const uploadUrlResponse = await fetch(
-        `/api/onboarding/resume-upload?fileName=${encodeURIComponent(file.name)}&mimeType=${encodeURIComponent(file.type)}`,
-        { method: "POST" }
-      );
+      const formData = new FormData();
+      formData.append("file", file);
 
-      if (!uploadUrlResponse.ok) {
-        const errorData = await uploadUrlResponse.json();
-        throw new Error(errorData.error || "Failed to get upload URL");
+      const response = await fetch("/api/onboarding/resume-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error((errorData as { error?: string }).error || `Upload failed (${response.status})`);
       }
 
-      const { uploadUrl, publicUrl } = await uploadUrlResponse.json();
-
-      await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
+      const { publicUrl } = await response.json();
 
       setResumeUrl(publicUrl);
       setShowUpload(false);
@@ -279,16 +277,37 @@ export function OnboardingChat() {
                   <MessageContent className={cn("text-base max-w-2xl", message.role === "assistant" && "text-primary")}>
                     {(() => {
                       const messageParts = (message.parts || []) as MessagePartLike[];
+                      // Detect resume attachment in this message
+                      const rawText = messageParts.find((p): p is { type: "text"; text: string } => p.type === "text" && typeof p.text === "string")?.text
+                        ?? (typeof (message as any).content === "string" ? (message as any).content : "");
+                      const hasResume = /\[Attached Resume:[^\]]*\]\([^\)]+\)/.test(rawText);
+
                       if (messageParts.length === 0 && typeof (message as any).content === "string") {
                         const cleaned = String((message as any).content).replace(/\[Attached Resume:[^\]]*\]\([^\)]+\)/g, "").trim();
-                        return cleaned ? <OnboardingMessageResponse key={`${message.id}-content`}>{cleaned}</OnboardingMessageResponse> : null;
+                        return (
+                          <>
+                            {hasResume && (message.role as string) === "user" && (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                                <FileText className="size-3" />
+                                <span>resume.pdf</span>
+                              </div>
+                            )}
+                            {cleaned ? <OnboardingMessageResponse key={`${message.id}-content`}>{cleaned}</OnboardingMessageResponse> : null}
+                          </>
+                        );
                       }
 
                       const textParts = messageParts.filter((part): part is { type: "text"; text: string } => part.type === "text" && typeof part.text === "string");
                       return (
                         <>
+                          {hasResume && (message.role as string) === "user" && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                              <FileText className="size-3" />
+                              <span>resume.pdf</span>
+                            </div>
+                          )}
                           {textParts.map((part, index) => {
-                            const displayTxt = part.text.replace(/\[Attached Resume:[^\]]*\]\([^\)]+\)/g, '').trim();
+                            const displayTxt = part.text.replace(/\[Attached Resume:[^\]]*\]\([^)]+\)/g, '').trim();
                             if (!displayTxt) return null;
                             return <OnboardingMessageResponse key={`${message.id}-${index}`}>{displayTxt}</OnboardingMessageResponse>;
                           })}
@@ -400,6 +419,24 @@ export function OnboardingChat() {
                 </Message>
               ))
             )}
+            {/* Thinking dots — shown while streaming before any assistant text arrives */}
+            {status === "streaming" && (() => {
+              const last = messages[messages.length - 1];
+              const hasText = last?.role === "assistant" && (
+                (last.parts as MessagePartLike[] | undefined)?.some(
+                  (p) => p.type === "text" && typeof p.text === "string" && p.text.trim().length > 0
+                ) ||
+                (typeof (last as any).content === "string" && (last as any).content.trim().length > 0)
+              );
+              if (hasText) return null;
+              return (
+                <Message from="assistant">
+                  <MessageContent className="text-base">
+                    <Shimmer duration={1.2}>•••</Shimmer>
+                  </MessageContent>
+                </Message>
+              );
+            })()}
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>
