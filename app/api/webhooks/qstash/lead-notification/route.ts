@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     // 1. Verify Signature (Security)
     const signature = req.headers.get("upstash-signature");
     if (!signature) {
+        console.error("[QStash Webhook] ❌ Error: Missing upstash-signature header");
         return NextResponse.json({ error: "Missing signature" }, { status: 401 });
     }
 
@@ -26,14 +27,15 @@ export async function POST(req: NextRequest) {
 
     let isValid = false;
     if (skipVerification) {
-        console.log("[QStash Webhook] Bypassing signature verification for local test.");
+        console.log("[QStash Webhook] 🚧 Bypassing verification (Dev Mode)");
         isValid = true;
     } else {
+        console.log("[QStash Webhook] 🛡️ Verifying signature...");
         isValid = await receiver.verify({
             signature,
             body: rawBody,
         }).catch((err) => {
-            console.warn("[QStash Webhook] Verification error:", err);
+            console.error("[QStash Webhook] ❌ Verification error:", err);
             return false;
         });
     }
@@ -45,8 +47,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isValid) {
+        console.error("[QStash Webhook] ❌ Error: Signature verification failed. Check your QSTASH_SIGNING_KEYS.");
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
+    console.log("[QStash Webhook] ✅ Signature verified successfully");
 
     // 2. Parse Body
     let sessionId: string;
