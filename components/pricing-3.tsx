@@ -3,51 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Check, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const plans = [
-    {
-        name: 'Starter',
-        price: '$0',
-        period: '',
-        description: 'Perfect for students and job seekers looking to stand out.',
-        features: [
-            '1 AI Portfolio',
-            '1 AI Agent Clone',
-            '100 AI Messages / mo',
-            'Standard Templates',
-        ],
-    },
-    {
-        name: 'Pro',
-        price: '$19',
-        period: '/month',
-        description: 'Your 24/7 automated sales representative.',
-        features: [
-            '3 AI Portfolios',
-            '3 AI Agents',
-            '1,000 AI Messages / mo',
-            'Google Calendar Integration',
-            'Lead Capture & CRM',
-            'Premium Templates',
-            'Custom Domain Support',
-        ],
-        highlighted: true,
-    },
-    {
-        name: 'Agency',
-        price: '$49',
-        period: '/month',
-        description: 'Scale your portfolio business with power metrics.',
-        features: [
-            '10 AI Portfolios',
-            '10 AI Agents',
-            '10,000 AI Messages / mo',
-            'Deep AI Analytics',
-            'Webhook Integrations',
-            'Priority Support',
-        ],
-    },
-]
+import { publicPricingTiers } from '@/lib/structured-data'
 
 export default function Pricing() {
     return (
@@ -58,7 +14,7 @@ export default function Pricing() {
                     <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">Everything you need to deploy your AI representative and start generating leads.</p>
                 </div>
                 <div className="@xl:grid-cols-3 @xl:gap-3 mt-12 grid gap-6">
-                    {plans.map((plan) => (
+                    {publicPricingTiers.map((plan) => (
                         <Card
                             key={plan.name}
                             variant={plan.highlighted ? 'default' : 'mixed'}
@@ -68,7 +24,7 @@ export default function Pricing() {
                                 <p className="text-muted-foreground mt-1 text-sm min-h-[40px]">{plan.description}</p>
                             </div>
                             <div>
-                                <span className="font-serif text-5xl font-medium">{plan.price}</span>
+                                <span className="font-serif text-5xl font-medium">{plan.priceDisplay}</span>
                                 <span className="text-muted-foreground">{plan.period}</span>
                             </div>
                             <ul className="mt-6 space-y-3 flex-1">
