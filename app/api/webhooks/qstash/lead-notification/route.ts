@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
     }
 
+    console.log(`[QStash Webhook] Parsed payload for session ${sessionId} (attempt ${attempt}).`);
+
     // 3. Logic to check if we should actually send the email
     try {
         const [lead] = await db
@@ -79,6 +81,13 @@ export async function POST(req: NextRequest) {
             .from(agentLeads)
             .where(eq(agentLeads.sessionId, sessionId))
             .limit(1);
+
+        console.log("[QStash Webhook] Lead lookup result", {
+            sessionId,
+            leadFound: Boolean(lead),
+            notificationSent: Boolean(lead?.notificationSent),
+            leadId: lead?.id,
+        });
 
         if (!lead || lead.notificationSent) {
             return NextResponse.json({ ok: true, status: "already_sent_or_missing" });
@@ -130,6 +139,7 @@ export async function POST(req: NextRequest) {
                 .limit(1);
             if (portfolio) {
                 sourceName = portfolio.name;
+                console.log(`[QStash Webhook] Using portfolio name as source: ${sourceName}`);
             }
         }
 
@@ -144,6 +154,18 @@ export async function POST(req: NextRequest) {
 
         if (emailToUse) {
             console.log(`[QStash Webhook] Found recipient email: ${emailToUse}`);
+            console.log("[QStash Webhook] Sending lead email payload", {
+                sessionId,
+                leadId: lead.id,
+                sourceName,
+                hasName: Boolean(lead.name),
+                hasEmail: Boolean(lead.email),
+                hasPhone: Boolean(lead.phone),
+                hasBudget: Boolean(lead.budget),
+                hasWebsite: Boolean(lead.website),
+                hasProjectDetails: Boolean(lead.projectDetails),
+                hasMeetingTime: Boolean(lead.meetingTime),
+            });
             console.log(`[QStash Webhook] Calling sendLeadNotificationEmail...`);
             await sendLeadNotificationEmail(
                 emailToUse,
@@ -164,6 +186,12 @@ export async function POST(req: NextRequest) {
                 .update(agentLeads)
                 .set({ notificationSent: true })
                 .where(eq(agentLeads.id, lead.id));
+
+            console.log("[QStash Webhook] Lead notificationSent flag updated", {
+                sessionId,
+                leadId: lead.id,
+                notificationSent: true,
+            });
 
             console.log(`[QStash Webhook] Notification sent and marked in DB for session: ${sessionId}`);
             return NextResponse.json({ ok: true, status: "notified" });
