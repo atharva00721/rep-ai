@@ -73,11 +73,11 @@ export default async function OverviewPage() {
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-foreground">Portfolio</span>
               <span className="text-xs text-muted-foreground">
-                {portfolio.isPublished ? "Published" : "Draft"}
+                {portfolio?.isPublished ? "Published" : "Draft"}
               </span>
             </div>
             <span className="text-xs text-muted-foreground capitalize mt-0.5">
-              Template: {portfolio.template}
+              Template: {portfolio?.template}
             </span>
           </div>
         </div>
