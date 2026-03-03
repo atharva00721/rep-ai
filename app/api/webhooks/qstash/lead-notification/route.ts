@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         const now = new Date();
         const lastUpdate = lead.updatedAt || lead.createdAt;
         const diffMs = now.getTime() - lastUpdate.getTime();
-        const fourMinutesThirtySeconds = 4.5 * 60 * 1000; // 4.5 minutes threshold
+        const fourMinutesThirtySeconds = 5 * 1000; // 5 seconds for testing
 
         if (diffMs < fourMinutesThirtySeconds) {
             console.log(`[QStash Webhook] 🕒 Conversation still active. Updated ${Math.round(diffMs / 1000)}s ago. Threshold is 270s.`);
