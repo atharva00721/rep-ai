@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { LogoIcon } from '@/components/logo'
-import { Menu, X, Search } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { cn } from '@/lib/utils'
@@ -28,103 +28,112 @@ export const HeroHeader = () => {
     }, [])
 
     return (
-        <header className="relative z-50">
-            <nav
-                aria-label="Primary"
-                data-state={menuState && 'active'}
-                className={cn(
-                    'fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 rounded-full border border-white/10 shadow-2xl',
-                    isScrolled
-                        ? 'w-[95%] md:w-[75%] bg-black/80 backdrop-blur-2xl py-3 px-2 md:px-4'
-                        : 'w-[98%] md:w-[80%] bg-white/5 backdrop-blur-xl py-4 px-4 md:px-6'
-                )}>
-                <div className="mx-auto w-full">
-                    <div className="relative flex items-center justify-between gap-4">
-                        {/* Left: Logo */}
-                        <div className="flex shrink-0">
-                            <Link
-                                href="/"
-                                aria-label="home"
-                                title="Mimick.me home"
-                                className="flex items-center gap-2">
-                                <LogoIcon className="h-8 md:h-9 w-auto" />
-                                <span className="font-serif text-lg md:text-xl tracking-tight text-white hidden sm:inline-block">Mimick.me</span>
-                            </Link>
-                        </div>
+        <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none pb-4">
+            <div className="flex justify-center pt-4 md:pt-6 pointer-events-auto">
+                <nav
+                    aria-label="Primary"
+                    className={cn(
+                        'transition-all duration-500 rounded-full border border-border/50 shadow-2xl relative z-50 flex items-center justify-between',
+                        isScrolled
+                            ? 'w-[95%] sm:w-[85%] md:w-[75%] bg-background/80 backdrop-blur-2xl py-2 px-3 sm:px-4'
+                            : 'w-[95%] sm:w-[90%] md:w-[80%] bg-background/40 backdrop-blur-xl py-3 px-4 sm:px-6'
+                    )}>
 
-                        {/* Center: Navigation Links */}
-                        <div className="hidden lg:flex items-center justify-center flex-1">
-                            <ul className="flex items-center gap-6 xl:gap-8">
-                                {menuItems.map((item, index) => (
-                                    <li key={index}>
-                                        <Link
-                                            href={item.href}
-                                            title={item.name}
-                                            className="text-[13px] font-medium text-white/60 hover:text-white transition-colors duration-200 tracking-wide uppercase">
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-3 md:gap-4 shrink-0">
-                            <ThemeSwitcher />
-                            <Link
-                                href="/auth/signin"
-                                title="Log in"
-                                className="text-[13px] font-medium text-white/60 hover:text-white transition-colors hidden md:block">
-                                Log in
-                            </Link>
-                            <Button
-                                asChild
-                                size="sm"
-                                className="rounded-full bg-[#D36746] hover:bg-[#b5583c] text-white px-4 md:px-6 h-9 md:h-10 text-[13px] font-bold transition-all hover:scale-[1.02] active:scale-[0.98] border-none">
-                                <Link href="/auth/signup" title="Get started">
-                                    Get Started
-                                </Link>
-                            </Button>
-
-                            {/* Mobile Toggle */}
-                            <button
-                                onClick={() => setMenuState(!menuState)}
-                                aria-label={menuState ? 'Close Menu' : 'Open Menu'}
-                                className="lg:hidden text-white p-1 hover:bg-white/10 rounded-full transition-colors">
-                                {menuState ? <X aria-hidden="true" className="size-5 md:size-6" /> : <Menu aria-hidden="true" className="size-5 md:size-6" />}
-                            </button>
-                        </div>
+                    {/* Left: Logo */}
+                    <div className="flex shrink-0">
+                        <Link
+                            href="/"
+                            aria-label="home"
+                            title="Mimick.me home"
+                            onClick={() => setMenuState(false)}
+                            className="flex items-center gap-2">
+                            <LogoIcon className="h-7 sm:h-8 md:h-9 w-auto text-foreground" />
+                            <span className="font-serif text-base sm:text-lg md:text-xl tracking-tight text-foreground hidden sm:inline-block">Mimick.me</span>
+                        </Link>
                     </div>
-                </div>
 
-                {/* Mobile Menu Overlay */}
+                    {/* Center: Navigation Links */}
+                    <div className="hidden lg:flex items-center justify-center flex-1">
+                        <ul className="flex items-center gap-6 xl:gap-8">
+                            {menuItems.map((item, index) => (
+                                <li key={index}>
+                                    <Link
+                                        href={item.href}
+                                        title={item.name}
+                                        className="text-[13px] font-medium text-foreground/70 hover:text-foreground transition-colors duration-200 tracking-wide uppercase">
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+                        <ThemeSwitcher />
+
+                        <Link
+                            href="/auth/signin"
+                            title="Log in"
+                            className="text-[13px] font-medium text-foreground/70 hover:text-foreground transition-colors hidden md:block">
+                            Log in
+                        </Link>
+
+                        <Button
+                            asChild
+                            size="sm"
+                            className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-4 lg:px-6 h-9 sm:h-10 text-[13px] font-bold transition-all hover:scale-[1.02] active:scale-[0.98] border-none hidden sm:flex">
+                            <Link href="/auth/signup" title="Get started">
+                                Get Started
+                            </Link>
+                        </Button>
+
+                        {/* Mobile Toggle */}
+                        <button
+                            onClick={() => setMenuState(!menuState)}
+                            aria-label={menuState ? 'Close Menu' : 'Open Menu'}
+                            className="lg:hidden text-foreground p-1 sm:p-2 hover:bg-muted rounded-full transition-colors z-50">
+                            {menuState ? <X aria-hidden="true" className="size-5 md:size-6" /> : <Menu aria-hidden="true" className="size-5 md:size-6" />}
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            {/* Mobile Menu Overlay */}
+            <div className={cn(
+                "fixed inset-0 z-40 lg:hidden bg-background/98 backdrop-blur-2xl transition-all duration-500 ease-in-out flex flex-col items-center justify-center p-8 pointer-events-auto",
+                menuState ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+            )}>
+                <ul className="flex flex-col items-center gap-6 sm:gap-8 text-center mt-12 w-full max-w-sm">
+                    {menuItems.map((item, index) => (
+                        <li key={index} className="w-full">
+                            <Link
+                                href={item.href}
+                                title={item.name}
+                                onClick={() => setMenuState(false)}
+                                className={cn(
+                                    "block w-full text-2xl sm:text-3xl font-serif text-foreground/80 hover:text-foreground transition-all duration-300 transform",
+                                    menuState ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                                )}
+                                style={{ transitionDelay: `${index * 50}ms` }}
+                            >
+                                {item.name}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
                 <div className={cn(
-                    "fixed inset-0 z-20 lg:hidden bg-black/95 backdrop-blur-2xl transition-all duration-500 flex flex-col items-center justify-center p-8 space-y-8",
-                    menuState ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+                    "flex flex-col w-full max-w-xs gap-4 pt-12 transition-all duration-500 delay-300 transform",
+                    menuState ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                 )}>
-                    <ul className="flex flex-col items-center gap-8 text-center">
-                        {menuItems.map((item, index) => (
-                            <li key={index}>
-                                <Link
-                                    href={item.href}
-                                    title={item.name}
-                                    onClick={() => setMenuState(false)}
-                                    className="text-2xl font-serif text-white/80 hover:text-white">
-                                    {item.name}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                    <div className="flex flex-col w-full gap-4 pt-8">
-                        <Button asChild variant="outline" className="rounded-full border-white/20 text-white hover:bg-white/10">
-                            <Link href="/auth/signin" title="Log in">Log in</Link>
-                        </Button>
-                        <Button asChild className="rounded-full bg-[#D36746] text-white">
-                            <Link href="/auth/signup" title="Get started">Get Started</Link>
-                        </Button>
-                    </div>
+                    <Button asChild variant="outline" className="rounded-full h-12 w-full text-base font-medium">
+                        <Link href="/auth/signin" title="Log in" onClick={() => setMenuState(false)}>Log in</Link>
+                    </Button>
+                    <Button asChild className="rounded-full h-12 w-full text-base font-medium">
+                        <Link href="/auth/signup" title="Get started" onClick={() => setMenuState(false)}>Get Started</Link>
+                    </Button>
                 </div>
-            </nav>
+            </div>
         </header>
     )
 }
