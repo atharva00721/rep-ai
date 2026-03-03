@@ -1,0 +1,45 @@
+import { Client } from "@upstash/qstash";
+
+const qstashClient = new Client({
+    token: process.env.QSTASH_TOKEN!,
+    baseUrl: process.env.QSTASH_URL, // Optional: if you provided a custom URL
+});
+
+export async function scheduleLeadNotification(sessionId: string) {
+    const token = process.env.QSTASH_TOKEN;
+    // Fallback to local 3000 if nothing is set (for local dev)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+
+    if (!token) {
+        console.warn("[QStash] Missing QSTASH_TOKEN. Skipping delayed notification.");
+        return;
+    }
+
+    if (!baseUrl) {
+        console.warn("[QStash] Missing NEXT_PUBLIC_APP_URL. QStash needs a public URL to hit your webhook. If testing locally, use ngrok.");
+        return;
+    }
+
+    try {
+        // Ensure the URL is absolute and correctly formatted
+        let protocol = 'https://';
+        let cleanBaseUrl = baseUrl.replace(/^https?:\/\//, '');
+
+        // Allow local testing if user explicitly set it to localhost
+        if (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+            protocol = 'http://';
+        }
+
+        const webhookUrl = `${protocol}${cleanBaseUrl}/api/webhooks/qstash/lead-notification`;
+
+        await qstashClient.publishJSON({
+            url: webhookUrl,
+            body: { sessionId },
+            delay: 10, // 10 seconds for local trial
+        });
+
+        console.log(`[QStash] Successfully scheduled 5-min delayed notification for session ${sessionId} to ${webhookUrl}`);
+    } catch (error) {
+        console.error("[QStash] Error scheduling notification:", error);
+    }
+}

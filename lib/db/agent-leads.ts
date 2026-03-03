@@ -155,12 +155,16 @@ export async function saveLeadWithDedup(input: SaveLeadInput): Promise<"inserted
     if (hasChanges || existing.sessionId !== input.sessionId) {
       await db
         .update(agentLeads)
-        .set({ ...merged, sessionId: input.sessionId })
+        .set({ ...merged, sessionId: input.sessionId, updatedAt: new Date() })
         .where(eq(agentLeads.id, existing.id));
       await linkMessagesToLead(existing.id, input.sessionId);
       return "updated";
     }
 
+    await db
+      .update(agentLeads)
+      .set({ updatedAt: new Date() })
+      .where(eq(agentLeads.id, existing.id));
     await linkMessagesToLead(existing.id, input.sessionId);
 
     return "updated";
@@ -188,6 +192,7 @@ export async function saveLeadWithDedup(input: SaveLeadInput): Promise<"inserted
     confidence: input.confidence,
     sessionId: input.sessionId,
     captureTurn: input.captureTurn ?? null,
+    updatedAt: new Date(),
   });
 
   await linkMessagesToLead(leadId, input.sessionId);

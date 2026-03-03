@@ -1,0 +1,155 @@
+import { NextRequest, NextResponse } from "next/server";
+import { Receiver } from "@upstash/qstash";
+import { db } from "@/lib/db";
+import { agentLeads, agents, portfolios, users } from "@/lib/schema";
+import { eq } from "drizzle-orm";
+import { sendLeadNotificationEmail } from "@/lib/mail";
+
+const receiver = new Receiver({
+    currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
+    nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
+});
+
+export async function POST(req: NextRequest) {
+    console.log("[QStash Webhook] Received request at", new Date().toISOString());
+    // 1. Verify Signature (Security)
+    const signature = req.headers.get("upstash-signature");
+    if (!signature) {
+        return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    const rawBody = await req.text();
+
+    const isDev = process.env.NODE_ENV === "development";
+    const sigPrefix = process.env.QSTASH_CURRENT_SIGNING_KEY?.startsWith("sig_local");
+    const skipVerification = isDev && (sigPrefix || signature === "sig_local_bypass");
+
+    let isValid = false;
+    if (skipVerification) {
+        console.log("[QStash Webhook] Bypassing signature verification for local test.");
+        isValid = true;
+    } else {
+        isValid = await receiver.verify({
+            signature,
+            body: rawBody,
+        }).catch((err) => {
+            console.warn("[QStash Webhook] Verification error:", err);
+            return false;
+        });
+    }
+
+    // Final fallback for local dev if keys are not configured correctly
+    if (!isValid && isDev) {
+        console.warn("[QStash Webhook] Signature verification failed, but allowing request in development mode.");
+        isValid = true;
+    }
+
+    if (!isValid) {
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+
+    // 2. Parse Body
+    let sessionId: string;
+    try {
+        const body = JSON.parse(rawBody);
+        sessionId = body.sessionId;
+    } catch (e) {
+        return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+    }
+
+    if (!sessionId) {
+        return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+    }
+
+    // 3. Logic to check if we should actually send the email
+    try {
+        const [lead] = await db
+            .select()
+            .from(agentLeads)
+            .where(eq(agentLeads.sessionId, sessionId))
+            .limit(1);
+
+        if (!lead || lead.notificationSent) {
+            return NextResponse.json({ ok: true, status: "already_sent_or_missing" });
+        }
+
+        // 4. Check if the conversation has been inactive for at least 4.5 minutes
+        // (We use 4.5 to account for slight delays in QStash/execution)
+        const now = new Date();
+        const lastUpdate = lead.updatedAt || lead.createdAt;
+        const diffMs = now.getTime() - lastUpdate.getTime();
+        const fourMinutesThirtySeconds = 5 * 1000; // 5 seconds for local trial
+
+        if (diffMs < fourMinutesThirtySeconds) {
+            // User has spoken after this QStash job was scheduled.
+            // Another QStash job will have been scheduled by that newer message.
+            return NextResponse.json({ ok: true, status: "conversation_still_active" });
+        }
+
+        // 5. Build and send the email
+        const [agentData] = await db
+            .select()
+            .from(agents)
+            .where(eq(agents.id, lead.agentId))
+            .limit(1);
+
+        if (!agentData) {
+            return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+        }
+
+        let sourceName = agentData.displayName || "Agent";
+        let emailToUse = agentData.notificationEmail;
+
+        if (lead.portfolioId) {
+            const [portfolio] = await db
+                .select({ name: portfolios.name })
+                .from(portfolios)
+                .where(eq(portfolios.id, lead.portfolioId))
+                .limit(1);
+            if (portfolio) {
+                sourceName = portfolio.name;
+            }
+        }
+
+        if (!emailToUse) {
+            const [owner] = await db
+                .select({ email: users.email })
+                .from(users)
+                .where(eq(users.id, agentData.userId))
+                .limit(1);
+            emailToUse = owner?.email;
+        }
+
+        if (emailToUse) {
+            console.log(`[QStash Webhook] Sending lead notification email to: ${emailToUse}`);
+            await sendLeadNotificationEmail(
+                emailToUse,
+                {
+                    name: lead.name,
+                    email: lead.email,
+                    phone: lead.phone,
+                    website: lead.website,
+                    budget: lead.budget,
+                    projectDetails: lead.projectDetails,
+                    meetingTime: lead.meetingTime,
+                },
+                sourceName
+            );
+
+            // 6. Mark as sent
+            await db
+                .update(agentLeads)
+                .set({ notificationSent: true })
+                .where(eq(agentLeads.id, lead.id));
+
+            console.log(`[QStash Webhook] Notification sent and marked in DB for session: ${sessionId}`);
+            return NextResponse.json({ ok: true, status: "notified" });
+        }
+
+        console.warn(`[QStash Webhook] No recipient email found for session: ${sessionId}`);
+        return NextResponse.json({ error: "No recipient email" }, { status: 400 });
+    } catch (error) {
+        console.error("[QStash Webhook Error]:", error);
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    }
+}

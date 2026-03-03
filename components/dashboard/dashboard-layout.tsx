@@ -113,6 +113,7 @@ export async function DashboardLayout({ children }: DashboardLayoutProps) {
                   name: profile?.name ?? "User",
                   email: session.user.email ?? "",
                   avatar: profile?.image,
+                  plan: profile?.plan ?? "free",
                 }} />
               </div>
             </div>

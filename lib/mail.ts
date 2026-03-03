@@ -9,6 +9,7 @@ export async function sendLeadNotificationEmail(
         budget?: string | null;
         meetingTime?: string | null;
         projectDetails?: string | null;
+        website?: string | null;
     },
     sourceName?: string | null
 ) {
@@ -39,6 +40,7 @@ Phone: ${leadDetails.phone || "N/A"}
 Additional Details:
 -----------------------------
 Budget: ${leadDetails.budget || "N/A"}
+Website: ${leadDetails.website || "N/A"}
 Meeting Time: ${leadDetails.meetingTime || "N/A"}
 
 Project Details:
@@ -61,6 +63,7 @@ Log in to your dashboard to view the full conversation and manage this lead.
     <h3>Additional Details:</h3>
     <ul>
       <li><strong>Budget:</strong> ${leadDetails.budget || "N/A"}</li>
+      <li><strong>Website:</strong> ${leadDetails.website ? `<a href="${leadDetails.website.startsWith('http') ? leadDetails.website : `https://${leadDetails.website}`}">${leadDetails.website}</a>` : "N/A"}</li>
       <li><strong>Meeting Time:</strong> ${leadDetails.meetingTime || "N/A"}</li>
     </ul>
     <h3>Project Details:</h3>
@@ -79,7 +82,11 @@ Log in to your dashboard to view the full conversation and manage this lead.
     try {
         await transporter.sendMail(mailOptions);
         console.log("Lead notification email sent successfully to", toEmail);
+        const fs = await import("fs");
+        fs.appendFileSync("/tmp/mail-log.txt", `${new Date().toISOString()}: Success - Sent to ${toEmail}\n`);
     } catch (error) {
         console.error("Failed to send lead notification email:", error);
+        const fs = await import("fs");
+        fs.appendFileSync("/tmp/mail-log.txt", `${new Date().toISOString()}: Error - ${String(error)}\n`);
     }
 }

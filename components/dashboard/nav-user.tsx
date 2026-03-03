@@ -43,6 +43,7 @@ export function NavUser({
         name: string;
         email: string;
         avatar?: string | null;
+        plan?: string;
     };
 }) {
     const { isMobile } = useSidebar();
@@ -104,15 +105,19 @@ export function NavUser({
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <Link href="/dashboard/pricing" className="flex items-center justify-center">
-                                    <Sparkles className="mr-2 size-4" />
-                                    Upgrade to Pro
-                                </Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
+                        {user.plan === "free" && (
+                            <>
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard/pricing" className="flex items-center justify-center">
+                                            <Sparkles className="mr-2 size-4" />
+                                            Upgrade to Pro
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                            </>
+                        )}
                         <DropdownMenuGroup>
                             <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
                                 <BadgeCheck className="mr-2 size-4" />

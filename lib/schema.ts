@@ -233,7 +233,9 @@ export const agentLeads = pgTable("agent_leads", {
   isRead: boolean("is_read").notNull().default(false),
   confidence: real("confidence").notNull(),
   sessionId: uuid("session_id"),
+  notificationSent: boolean("notification_sent").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   check(
     "agent_leads_status_check",

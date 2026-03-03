@@ -48,6 +48,7 @@ export function AppSidebar({ credits, plan, userName, userEmail, userImage }: Ap
       name: userName,
       email: userEmail,
       avatar: userImage,
+      plan: plan,
     },
     navMain: [
       {
