@@ -16,8 +16,7 @@ export async function sendLeadNotificationEmail(
     const { EMAIL_USER, EMAIL_PASS } = process.env;
 
     if (!EMAIL_USER || !EMAIL_PASS) {
-        console.warn("SMTP credentials not configured. Skipping lead notification email.");
-        return;
+        throw new Error("SMTP credentials not configured. Set EMAIL_USER and EMAIL_PASS.");
     }
 
     const transporter = nodemailer.createTransport({
@@ -79,10 +78,6 @@ Log in to your dashboard to view the full conversation and manage this lead.
         html: htmlContent,
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log("Lead notification email sent successfully to", toEmail);
-    } catch (error) {
-        console.error("Failed to send lead notification email:", error);
-    }
+    const sendResult = await transporter.sendMail(mailOptions);
+    console.log("Lead notification email sent successfully to", toEmail, "messageId:", sendResult.messageId);
 }
