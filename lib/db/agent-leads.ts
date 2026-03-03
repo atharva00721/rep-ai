@@ -32,6 +32,7 @@ export interface ExistingLead {
   confidence: number;
   sessionId: string | null;
   captureTurn: number | null;
+  notificationSent: boolean;
 }
 
 export function normalizeEmail(email: string | null | undefined): string {
@@ -99,6 +100,7 @@ async function findExistingLead(agentId: string, lookup: LeadLookupKey): Promise
       confidence: agentLeads.confidence,
       sessionId: agentLeads.sessionId,
       captureTurn: agentLeads.captureTurn,
+      notificationSent: agentLeads.notificationSent,
     })
     .from(agentLeads)
     .where(
