@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 
+const MAIL_SEND_TIMEOUT_MS = 15_000;
+
 export async function sendLeadNotificationEmail(
     toEmail: string,
     leadDetails: {
@@ -15,7 +17,19 @@ export async function sendLeadNotificationEmail(
 ) {
     const { EMAIL_USER, EMAIL_PASS } = process.env;
 
+    console.log("[Mail] Preparing lead notification email", {
+        toEmail,
+        sourceName: sourceName || "N/A",
+        hasLeadName: Boolean(leadDetails.name),
+        hasLeadEmail: Boolean(leadDetails.email),
+        hasProjectDetails: Boolean(leadDetails.projectDetails),
+    });
+
     if (!EMAIL_USER || !EMAIL_PASS) {
+        console.error("[Mail] Missing SMTP configuration", {
+            hasEmailUser: Boolean(EMAIL_USER),
+            hasEmailPass: Boolean(EMAIL_PASS),
+        });
         throw new Error("SMTP credentials not configured. Set EMAIL_USER and EMAIL_PASS.");
     }
 
@@ -25,6 +39,9 @@ export async function sendLeadNotificationEmail(
             user: EMAIL_USER,
             pass: EMAIL_PASS,
         },
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
     });
 
     const textContent = `
@@ -78,6 +95,38 @@ Log in to your dashboard to view the full conversation and manage this lead.
         html: htmlContent,
     };
 
-    const sendResult = await transporter.sendMail(mailOptions);
-    console.log("Lead notification email sent successfully to", toEmail, "messageId:", sendResult.messageId);
+    console.log("[Mail] Sending email via Nodemailer", {
+        service: "gmail",
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+    });
+
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+            reject(new Error(`Email send timed out after ${MAIL_SEND_TIMEOUT_MS}ms`));
+        }, MAIL_SEND_TIMEOUT_MS);
+        timeoutHandle.unref?.();
+    });
+
+    let sendResult;
+    try {
+        sendResult = await Promise.race([
+            transporter.sendMail(mailOptions),
+            timeoutPromise,
+        ]);
+    } finally {
+        if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+        }
+    }
+
+    console.log("[Mail] Lead notification email sent successfully", {
+        toEmail,
+        messageId: sendResult.messageId,
+        accepted: sendResult.accepted,
+        rejected: sendResult.rejected,
+        response: sendResult.response,
+    });
 }
