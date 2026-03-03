@@ -35,7 +35,7 @@ export async function scheduleLeadNotification(sessionId: string) {
         await qstashClient.publishJSON({
             url: webhookUrl,
             body: { sessionId },
-            delay: 10, // 10 seconds for local trial
+            delay: 300, // 5 minutes (300 seconds)
         });
 
         console.log(`[QStash] Successfully scheduled 5-min delayed notification for session ${sessionId} to ${webhookUrl}`);

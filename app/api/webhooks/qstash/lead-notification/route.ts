@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         const now = new Date();
         const lastUpdate = lead.updatedAt || lead.createdAt;
         const diffMs = now.getTime() - lastUpdate.getTime();
-        const fourMinutesThirtySeconds = 5 * 1000; // 5 seconds for local trial
+        const fourMinutesThirtySeconds = 4.5 * 60 * 1000; // 4.5 minutes threshold
 
         if (diffMs < fourMinutesThirtySeconds) {
             // User has spoken after this QStash job was scheduled.

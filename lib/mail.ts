@@ -82,11 +82,7 @@ Log in to your dashboard to view the full conversation and manage this lead.
     try {
         await transporter.sendMail(mailOptions);
         console.log("Lead notification email sent successfully to", toEmail);
-        const fs = await import("fs");
-        fs.appendFileSync("/tmp/mail-log.txt", `${new Date().toISOString()}: Success - Sent to ${toEmail}\n`);
     } catch (error) {
         console.error("Failed to send lead notification email:", error);
-        const fs = await import("fs");
-        fs.appendFileSync("/tmp/mail-log.txt", `${new Date().toISOString()}: Error - ${String(error)}\n`);
     }
 }
