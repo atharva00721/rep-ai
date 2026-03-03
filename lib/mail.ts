@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 
+const MAIL_SEND_TIMEOUT_MS = 15_000;
+
 export async function sendLeadNotificationEmail(
     toEmail: string,
     leadDetails: {
@@ -37,6 +39,9 @@ export async function sendLeadNotificationEmail(
             user: EMAIL_USER,
             pass: EMAIL_PASS,
         },
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
     });
 
     const textContent = `
@@ -97,7 +102,26 @@ Log in to your dashboard to view the full conversation and manage this lead.
         subject: mailOptions.subject,
     });
 
-    const sendResult = await transporter.sendMail(mailOptions);
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+            reject(new Error(`Email send timed out after ${MAIL_SEND_TIMEOUT_MS}ms`));
+        }, MAIL_SEND_TIMEOUT_MS);
+        timeoutHandle.unref?.();
+    });
+
+    let sendResult;
+    try {
+        sendResult = await Promise.race([
+            transporter.sendMail(mailOptions),
+            timeoutPromise,
+        ]);
+    } finally {
+        if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+        }
+    }
+
     console.log("[Mail] Lead notification email sent successfully", {
         toEmail,
         messageId: sendResult.messageId,

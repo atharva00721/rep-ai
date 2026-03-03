@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
                 notificationSent: lead?.notificationSent ?? false,
                 updatedAt: lead?.updatedAt?.toISOString?.(),
             });
-            return NextResponse.json({ ok: true, status: "already_sent_or_missing" });
+            console.log(`[QStash Webhook] Returning 200 for session ${sessionId} with status ${skipReason}.`);
+            return NextResponse.json({ ok: true, status: skipReason });
         }
 
         // 4. Check if the conversation has been inactive for at least 4.5 minutes
