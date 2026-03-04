@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Globe, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Globe, Loader2, XCircle, Search } from "lucide-react";
 import type { AgentConfigState } from "./types";
 import Image from "next/image";
 import { useState } from "react";
@@ -34,7 +34,7 @@ export function AgentIntegrationsTab({
       setActiveFeature(feature);
       setShowUpgradeModal(true);
     } else {
-      router.push(connectUrl);
+      window.location.href = connectUrl;
     }
   };
 
@@ -110,6 +110,32 @@ export function AgentIntegrationsTab({
                 Connect Calendly
               </Button>
             )}
+          </CardFooter>
+        </Card>
+
+        {/* Lead Enrichment (The Spy) */}
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex h-[70px] w-[70px] items-center justify-center rounded-md bg-primary/10">
+                <Search className="size-8 text-primary" />
+              </div>
+              <Badge variant="default">
+                <span className="flex items-center gap-1"><CheckCircle2 className="size-3" /> Active</span>
+              </Badge>
+            </div>
+            <CardTitle className="text-xl">The Spy (Lead Enrichment)</CardTitle>
+            <CardDescription>Automatically researches your leads in the background to enrich your notification emails with their LinkedIn profile, company size, and recent news.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1">
+            <p className="text-sm text-muted-foreground">
+              This feature is active and runs automatically whenever a new lead is detected. Wait for the magic to happen in your inbox!
+            </p>
+          </CardContent>
+          <CardFooter className="bg-muted/30 border-t border-border mt-auto">
+            <Button variant="outline" className="w-full" disabled>
+              Running in Background
+            </Button>
           </CardFooter>
         </Card>
       </div>

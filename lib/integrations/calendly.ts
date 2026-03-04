@@ -76,6 +76,8 @@ export async function getCurrentUserEmail(accessToken: string): Promise<{ email:
 const CALENDLY_WEBHOOK_SIGNING_KEY = process.env.CALENDLY_WEBHOOK_SIGNING_KEY || "";
 
 export async function subscribeToWebhooks(userUri: string, accessToken: string) {
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+
     const response = await fetch("https://api.calendly.com/webhook_subscriptions", {
         method: "POST",
         headers: {
@@ -83,10 +85,10 @@ export async function subscribeToWebhooks(userUri: string, accessToken: string) 
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            url: `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/calendly/webhook`,
+            url: `${baseUrl}/api/integrations/calendly/webhook`,
             events: ["invitee.created", "invitee.canceled"],
             organization: userUri.split("/users/")[0], // Calendly org URI
-            scope: "user",
+            scope: "organization",
             signing_key: CALENDLY_WEBHOOK_SIGNING_KEY,
         }),
     });
@@ -94,6 +96,7 @@ export async function subscribeToWebhooks(userUri: string, accessToken: string) 
     if (!response.ok) {
         const errorBody = await response.text();
         console.error(`Failed to subscribe to Calendly webhooks: ${response.status} ${errorBody}`);
+        throw new Error(`Failed to subscribe to Calendly webhooks: ${response.status} ${errorBody}`);
     }
 
     return response.json();
