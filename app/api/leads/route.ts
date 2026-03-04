@@ -4,6 +4,7 @@ import { parseJsonBody, requireUserId } from "@/lib/api/route-helpers";
 import { extractLeadFromText } from "@/lib/lead-extract";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendLeadNotificationEmail } from "@/lib/mail";
+import { enrichLeadData } from "@/lib/ai/enrichment";
 
 interface LeadRequestBody {
   text?: unknown;
@@ -52,11 +53,16 @@ export async function POST(request: Request) {
     try {
       const ownerProfile = await getProfileById(authResult.userId);
       if (ownerProfile?.email) {
+        const enrichment = await enrichLeadData(
+          lead.email,
+          lead.name ?? undefined
+        ).catch(() => null);
+
         await sendLeadNotificationEmail(ownerProfile.email, {
           name: lead.name,
           email: lead.email,
           projectDetails: lead.company, // using company field as extra info if available
-        });
+        }, undefined, enrichment);
       }
     } catch (e) {
       console.error("Error sending lead email notification:", e);

@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type { LeadEnrichment } from "@/lib/ai/enrichment";
 
 const MAIL_SEND_TIMEOUT_MS = 15_000;
 
@@ -13,7 +14,8 @@ export async function sendLeadNotificationEmail(
         projectDetails?: string | null;
         website?: string | null;
     },
-    sourceName?: string | null
+    sourceName?: string | null,
+    enrichment?: LeadEnrichment | null
 ) {
     const { EMAIL_USER, EMAIL_PASS } = process.env;
 
@@ -23,7 +25,16 @@ export async function sendLeadNotificationEmail(
         hasLeadName: Boolean(leadDetails.name),
         hasLeadEmail: Boolean(leadDetails.email),
         hasProjectDetails: Boolean(leadDetails.projectDetails),
+        hasEnrichment: Boolean(enrichment),
     });
+
+    const hasEnrichment = Boolean(
+        enrichment && Object.values(enrichment).some((value) => Boolean(value))
+    );
+
+    const compactBio = enrichment?.bio
+        ? enrichment.bio.split(",")[0]?.trim() ?? enrichment.bio
+        : null;
 
     if (!EMAIL_USER || !EMAIL_PASS) {
         console.error("[Mail] Missing SMTP configuration", {
@@ -64,7 +75,15 @@ Project Details:
 ${leadDetails.projectDetails || "N/A"}
 
 Log in to your dashboard to view the full conversation and manage this lead.
-`;
+${hasEnrichment ? `
+---
+🕵️ SPY INSIGHTS
+LinkedIn:     ${enrichment?.linkedInUrl || "Not found"}
+Company Size: ${enrichment?.companySize || "Unknown"}
+Recent News:  ${enrichment?.recentNews || "Nothing found"}
+Bio:          ${enrichment?.bio || "—"}
+---
+` : ""}`;
 
     const htmlContent = `
     <h2>New Lead Captured - Rep AI</h2>
@@ -84,13 +103,24 @@ Log in to your dashboard to view the full conversation and manage this lead.
     </ul>
     <h3>Project Details:</h3>
     <p>${leadDetails.projectDetails || "N/A"}</p>
+    ${hasEnrichment ? `
+      <div style="background: #f0f4ff; border-left: 4px solid #4f46e5; padding: 12px; margin-top: 16px; border-radius: 6px;">
+        <h3 style="margin-top: 0;">🕵️ Spy Insights</h3>
+        <p><strong>LinkedIn:</strong> ${enrichment?.linkedInUrl ? `<a href="${enrichment.linkedInUrl}">${enrichment.linkedInUrl}</a>` : "Not found"}</p>
+        <p><strong>Company Size:</strong> ${enrichment?.companySize || "Unknown"}</p>
+        <p><strong>Recent News:</strong> ${enrichment?.recentNews || "Nothing found"}</p>
+        <p><strong>Bio:</strong> ${enrichment?.bio || "—"}</p>
+      </div>
+    ` : ""}
     <p><br><em>Log in to your dashboard to view the full conversation and manage this lead.</em></p>
   `;
 
     const mailOptions = {
         from: `"Rep AI Notification" <${EMAIL_USER}>`,
         to: toEmail,
-        subject: sourceName ? `New Lead Captured from ${sourceName}` : "New Lead Captured - Rep AI",
+        subject: hasEnrichment
+            ? `🔥 Hot Lead: ${leadDetails.name || leadDetails.email || "Unknown"}${compactBio ? ` (${compactBio})` : ""}`
+            : sourceName ? `New Lead Captured from ${sourceName}` : "New Lead Captured - Rep AI",
         text: textContent,
         html: htmlContent,
     };
