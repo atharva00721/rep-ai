@@ -20,13 +20,13 @@ export type ResolvedPublicAgentContext = {
   temperature: number;
   behaviorType: BehaviorPresetType | null;
   strategyMode: ConversationStrategyMode;
-  content: ReturnType<typeof validatePortfolioContent>;
+  content: ReturnType<typeof validatePortfolioContent> | null;
   displayName: string | null;
   avatarUrl: string | null;
   intro: string | null;
   roleLabel: string | null;
-  workingHours: unknown;
-  offDays: unknown;
+  workingHours: { dayOfWeek: number; startTime: string; endTime: string; enabled: boolean }[] | null;
+  offDays: string[] | null;
   customPrompt: string | null;
 };
 
@@ -111,8 +111,8 @@ export async function resolvePublicAgentContext(input: {
       avatarUrl: portfolio?.agentAvatarUrl ?? standaloneAgent?.avatarUrl ?? null,
       intro: portfolio?.agentIntro ?? standaloneAgent?.intro ?? null,
       roleLabel: portfolio?.agentRoleLabel ?? standaloneAgent?.roleLabel ?? null,
-      workingHours: (portfolio as any)?.agentWorkingHours ?? (standaloneAgent as any)?.workingHours ?? null,
-      offDays: (portfolio as any)?.agentOffDays ?? (standaloneAgent as any)?.offDays ?? null,
+      workingHours: (portfolio?.agentWorkingHours as any) ?? standaloneAgent?.workingHours ?? null,
+      offDays: portfolio?.agentOffDays ?? standaloneAgent?.offDays ?? null,
       customPrompt: portfolio?.agentCustomPrompt ?? standaloneAgent?.customPrompt ?? null,
     },
   };
