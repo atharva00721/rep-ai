@@ -17,6 +17,7 @@ interface FAQSectionProps {
     onAdd: () => void;
     onRemove: (index: number) => void;
     isVisible: boolean;
+    onVisibilityChange?: (checked: boolean) => void;
 }
 
 export function FAQSection({
@@ -25,6 +26,7 @@ export function FAQSection({
     onAdd,
     onRemove,
     isVisible,
+    onVisibilityChange,
 }: FAQSectionProps) {
     return (
         <div className="space-y-6">

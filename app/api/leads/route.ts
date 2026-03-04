@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   Promise.resolve().then(async () => {
     try {
       const ownerProfile = await getProfileById(authResult.userId);
-      if (ownerProfile?.email) {
+      if (ownerProfile?.email && lead.email) {
         const enrichment = await enrichLeadData(
           lead.email,
           lead.name ?? undefined

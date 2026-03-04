@@ -209,8 +209,7 @@ export async function streamOnboardingChat({
           }
 
           const parsedValue = validation.value;
-          y
-            (collected as any)[step] = parsedValue;
+          (collected as any)[step] = parsedValue;
           const merged = { ...collected };
 
           try {
@@ -266,13 +265,10 @@ export async function streamOnboardingChat({
           handle: z.string(),
         }),
         execute: async (data) => {
-          y
           if (data.selectedSections && (data.selectedSections as any).hero === "on") {
-            y
             data = { ...data, selectedSections: { ...data.selectedSections!, hero: true } as any };
           }
           console.log("[request_preview] execute called with:", data);
-          y
           const parsed = validateFinalOnboardingState(data as any);
           if (!parsed.ok) {
             console.error(

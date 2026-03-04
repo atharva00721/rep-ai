@@ -23,7 +23,7 @@ export async function createPortfolio(input: CreatePortfolioInput) {
         name: portfolioName,
         handle: input.handle,
         subdomain: null,
-        onboardingData: input.onboardingData,
+        onboardingData: input.onboardingData as any,
         template: "modern",
         theme: "minimal",
         isPublished: false,

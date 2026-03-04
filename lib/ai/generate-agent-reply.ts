@@ -101,7 +101,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
             ...(calendarEnabled ? {
               check_availability: tool({
                 description: "CRITICAL: ONLY call this tool if the user explicitly provided a day, date, or relative time (like 'tomorrow'). NEVER call this tool if you don't know the exact date they want. If they just ask 'when are you free?', DO NOT call this tool — instead, ask them what day they prefer.",
-                parameters: z.object({
+                inputSchema: z.object({
                   date: z.string().describe("The date to check in YYYY-MM-DD format, e.g., 2024-02-28."),
                 }),
                 execute: async (args: any) => {
@@ -210,7 +210,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
             ...(calendlyEnabled ? {
               get_calendly_link: tool({
                 description: "Get the visitor's custom Calendly booking link. ONLY call this if the visitor specifically asks for a link, wants to 'book a meeting', 'schedule time', or 'see your calendar'. NEVER call this tool if Calendly is not enabled.",
-                parameters: z.object({}),
+                inputSchema: z.object({}),
                 execute: async () => {
                   console.log(`[tool:get_calendly_link] CALLED`);
                   return {
@@ -223,7 +223,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
 
             get_current_datetime: tool({
               description: "Get the current date and time. Use this when the visitor asks what time or date it is, or when you need to know the current moment to give a relevant answer.",
-              parameters: z.object({}),
+              inputSchema: z.object({}),
               execute: async () => {
                 const now = new Date();
                 console.log(`[tool:get_current_datetime] CALLED`);
@@ -238,7 +238,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
 
             get_current_date: tool({
               description: "Get today's date. Use this when the visitor asks what day or date it is.",
-              parameters: z.object({}),
+              inputSchema: z.object({}),
               execute: async () => {
                 const now = new Date();
                 console.log(`[tool:get_current_date] CALLED`);
@@ -252,7 +252,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
 
             get_current_time: tool({
               description: "Get the current time. Use this when the visitor asks what time it is.",
-              parameters: z.object({}),
+              inputSchema: z.object({}),
               execute: async () => {
                 const now = new Date();
                 console.log(`[tool:get_current_time] CALLED`);

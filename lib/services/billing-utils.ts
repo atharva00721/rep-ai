@@ -1,5 +1,5 @@
-import { db } from "./db";
-import { users, portfolios, agents } from "./schema";
+import { db } from "@/lib/db";
+import { users, portfolios, agents } from "@/lib/schema";
 import { eq, and, lte } from "drizzle-orm";
 
 export const PAST_DUE_GRACE_DAYS = 31;
