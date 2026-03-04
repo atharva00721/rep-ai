@@ -1,4 +1,4 @@
-// @ts-nocheck
+// Fix linting issues
 import type { PortfolioTone } from "@/lib/db/portfolio";
 import {
   getDefaultVisibleSections,
@@ -84,6 +84,16 @@ export function parseFaqs(input: string) {
     .split(/\n+/)
     .map((item) => normalizeWhitespace(item))
     .filter(Boolean);
+}
+
+export function parseSections(input: string): PortfolioSectionKey[] {
+  const keys = input
+    .split(/[\n,]/)
+    .map((item) => normalizeWhitespace(item).toLowerCase())
+    .filter(Boolean) as PortfolioSectionKey[];
+
+  const validKeys = PORTFOLIO_SECTION_REGISTRY.map((s) => s.key) as string[];
+  return keys.filter((k) => validKeys.includes(k));
 }
 
 export function parseProjects(input: string): OnboardingProjectInput[] {

@@ -56,7 +56,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
       <header className="sticky top-0 z-20 bg-[#fafaf8]/95 dark:bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <a href="#" className="flex items-center gap-2">
-            <span className="font-mono text-emerald-700 dark:text-emerald-400 text-xs select-none">//</span>
+            <span className="font-mono text-emerald-700 dark:text-emerald-400 text-xs select-none">{"//"}</span>
             <span className="text-sm font-medium">{content.name || content.hero.headline}</span>
           </a>
           <DesktopNav visibleSections={visibleSections} />
@@ -73,7 +73,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
           <section className="pt-20 pb-28 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn duration={0.8} from="bottom">
               <div className="font-mono text-xs text-emerald-700 dark:text-emerald-400 mb-6 tracking-wide">
-                // hello, world
+                {"// hello, world"}
               </div>
               <h1 className="text-[clamp(2.8rem,7.5vw,6.5rem)] font-bold tracking-[-0.04em] leading-[1.0] text-balance">
                 {content.hero.headline}
@@ -103,7 +103,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "about") && (
           <section id="about" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-8">// about</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-8">{"// about"}</div>
               <p className="text-xl font-light text-zinc-600 dark:text-zinc-400 leading-[1.75] max-w-3xl">
                 {content.about.paragraph}
               </p>
@@ -114,7 +114,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "services") && content.services && content.services.length > 0 && (
           <section id="services" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// services</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// services"}</div>
             </AnimateIn>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {content.services.map((service, i) => (
@@ -134,7 +134,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
           <section id="work" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
-                <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider">// selected work</div>
+                <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider">{"// selected work"}</div>
                 <div className="flex items-center gap-1 border border-zinc-200 dark:border-zinc-800 p-1 bg-white dark:bg-zinc-900">
                   {([["grid", Grid3X3Icon], ["list", ListIcon], ["masonry", LayersIcon]] as const).map(([mode, Icon]) => (
                     <button key={mode} onClick={() => setViewMode(mode as ViewMode)}
@@ -193,7 +193,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "products") && content.products && content.products.length > 0 && (
           <section id="products" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// products</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// products"}</div>
             </AnimateIn>
             <StaggerChildren stagger={0.08} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {content.products.map((product, i) => (
@@ -228,7 +228,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "history") && content.history && content.history.length > 0 && (
           <section id="history" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// experience</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// experience"}</div>
             </AnimateIn>
             <div className="space-y-0 border-l-2 border-zinc-200 dark:border-zinc-800 pl-6">
               {content.history.map((item, i) => (
@@ -251,7 +251,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "testimonials") && content.testimonials && content.testimonials.length > 0 && (
           <section id="testimonials" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// what people say</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// what people say"}</div>
             </AnimateIn>
             <StaggerChildren stagger={0.1} className="grid md:grid-cols-2 gap-6">
               {content.testimonials.map((t, i) => (
@@ -274,7 +274,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "faq") && content.faq && content.faq.length > 0 && (
           <section id="faq" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// faq</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// faq"}</div>
             </AnimateIn>
             <div className="grid md:grid-cols-2 gap-6 max-w-5xl">
               {content.faq.map((f, i) => (
@@ -295,7 +295,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "gallery") && content.gallery && content.gallery.length > 0 && (
           <section id="gallery" className="py-20 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">// gallery</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-10">{"// gallery"}</div>
             </AnimateIn>
             <StaggerChildren stagger={0.06} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {content.gallery.map((g, i) => (
@@ -318,7 +318,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
         {isSectionVisible(visibleSections, "cta") && (
           <section id="contact" className="py-28">
             <AnimateIn>
-              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-8">// get in touch</div>
+              <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider mb-8">{"// get in touch"}</div>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-balance mb-6 max-w-2xl">
                 {content.cta.headline}
               </h2>
@@ -342,7 +342,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
               className="relative w-full max-w-xl h-full bg-[#fafaf8] dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-y-auto flex flex-col"
               onClick={(e) => e.stopPropagation()}>
               <div className="sticky top-0 bg-[#fafaf8]/95 dark:bg-zinc-950/95 backdrop-blur border-b border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between">
-                <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider">// project details</span>
+                <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 tracking-wider">{"// project details"}</span>
                 <button onClick={closeProject} className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
                   <XIcon className="size-5" />
                 </button>
@@ -363,7 +363,7 @@ export function InteractiveTemplate({ content }: { content: PortfolioContent }) 
                   </p>
                 </div>
                 <div className="p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-                  <p className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 mb-2 tracking-wider">// result</p>
+                  <p className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 mb-2 tracking-wider">{"// result"}</p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">{content.projects[selectedProject].result}</p>
                 </div>
               </div>

@@ -8,7 +8,7 @@ const dodo = new DodoPayments({
     environment: "test_mode",
 });
 
-export async function POST(request: Request) {
+export async function POST() {
     const authResult = await requireUserId();
     if (!authResult.ok) {
         return authResult.response;

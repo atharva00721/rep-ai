@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUserId } from "@/lib/api/route-helpers";
 import { DodoPayments } from "dodopayments";
-import { getProfileById, db } from "@/lib/db";
-import { users } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { getProfileById } from "@/lib/db";
 
 const dodo = new DodoPayments({
     bearerToken: process.env.DODO_PAYMENTS_API_KEY!,

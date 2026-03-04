@@ -21,9 +21,10 @@ export async function POST() {
       return NextResponse.json({ ok: false, error: "Portfolio not found" }, { status: 404 });
     }
 
+    type SectionKey = "about" | "hero" | "services" | "projects" | "products" | "history" | "testimonials" | "faq" | "gallery" | "cta";
     const sectionCount = calculateSectionCount(
-      (portfolio.content as any)?.visibleSections,
-      (portfolio.onboardingData as any)?.sections
+      (portfolio.content as { visibleSections?: SectionKey[] } | null)?.visibleSections,
+      (portfolio.onboardingData as { sections?: SectionKey[] })?.sections
     );
     const creditCost = Math.max(1, sectionCount);
 

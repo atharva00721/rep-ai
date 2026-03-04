@@ -2,8 +2,6 @@
 
 import {
     BadgeCheck,
-    Bell,
-    CreditCard,
     LogOut,
     Sparkles,
     Sun,
@@ -46,13 +44,13 @@ export function NavUser({
         plan?: string;
     };
 }) {
-    const { isMobile } = useSidebar();
     const router = useRouter();
 
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

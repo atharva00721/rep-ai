@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { users, portfolios, agents } from "@/lib/schema";
+import { users } from "@/lib/schema";
 import { and, eq, lte, sql, type SQL } from "drizzle-orm";
 
 import {

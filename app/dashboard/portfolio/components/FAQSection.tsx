@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface FAQSectionProps {
@@ -18,7 +17,6 @@ interface FAQSectionProps {
     onAdd: () => void;
     onRemove: (index: number) => void;
     isVisible: boolean;
-    onVisibilityChange?: (visible: boolean) => void;
 }
 
 export function FAQSection({
@@ -27,7 +25,6 @@ export function FAQSection({
     onAdd,
     onRemove,
     isVisible,
-    onVisibilityChange,
 }: FAQSectionProps) {
     return (
         <div className="space-y-6">
@@ -78,7 +75,7 @@ export function FAQSection({
                         <div className="py-12 text-center border-2 border-dashed border-primary/20 rounded-xl bg-primary/5">
                             <FileText className="size-8 mx-auto text-muted-foreground/50 mb-3" />
                             <p className="text-sm font-medium">No FAQs added yet</p>
-                            <p className="text-xs text-muted-foreground mb-4">Anticipate and answer your visitors' questions.</p>
+                            <p className="text-xs text-muted-foreground mb-4">Anticipate and answer your visitors&apos; questions.</p>
                             <Button size="sm" onClick={onAdd} className="rounded-full">
                                 <Plus className="size-3.5 mr-1.5" />
                                 Add Question

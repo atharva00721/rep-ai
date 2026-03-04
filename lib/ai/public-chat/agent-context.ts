@@ -12,8 +12,11 @@ import {
 import { validatePortfolioContent } from "@/lib/validation/portfolio-schema";
 
 export type ResolvedPublicAgentContext = {
-  portfolio: Awaited<ReturnType<typeof getPortfolioBackedAgentContextByAgentId>>;
-  standaloneAgent: Awaited<ReturnType<typeof getAgentCoreConfigById>>;
+  portfolio:
+  | Awaited<ReturnType<typeof getPortfolioBackedAgentContextByAgentId>>
+  | Awaited<ReturnType<typeof getPortfolioBackedAgentContextByHandle>>
+  | null;
+  standaloneAgent: Awaited<ReturnType<typeof getAgentCoreConfigById>> | null;
   agentId: string;
   handle: string;
   model: string;

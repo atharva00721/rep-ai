@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySignature } from "@/lib/integrations/calendly";
 import { db } from "@/lib/db";
 import { agentLeads } from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
     const body = await request.text();

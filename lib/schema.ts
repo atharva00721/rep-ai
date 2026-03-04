@@ -23,22 +23,10 @@ import {
  * This custom type safely converts any value (Date, string, number) to an
  * ISO string before sending to the driver.
  */
-const safeTimestamp = customType<{
-  data: string;
-  driverData: string;
-}>({
-  dataType() {
-    return "timestamp with time zone";
-  },
-  toDriver(value: unknown): string {
-    if (value instanceof Date) return value.toISOString();
-    if (typeof value === "number") return new Date(value).toISOString();
-    return String(value ?? "");
-  },
-  fromDriver(value: unknown): string {
-    return String(value ?? "");
-  },
-});
+// removed safeTimestamp as it was unused
+
+import { type OnboardingData } from "./onboarding/types";
+import { type PortfolioContent } from "./validation/portfolio-schema";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
@@ -138,8 +126,8 @@ export const portfolios = pgTable(
     name: varchar("name", { length: 80 }).notNull().default("My Portfolio"),
     handle: varchar("handle", { length: 30 }).notNull(),
     subdomain: varchar("subdomain", { length: 30 }),
-    onboardingData: jsonb("onboarding_data").notNull(),
-    content: jsonb("content"),
+    onboardingData: jsonb("onboarding_data").notNull().$type<OnboardingData>(),
+    content: jsonb("content").$type<PortfolioContent>(),
     template: varchar("template", { length: 30 }).notNull().default("modern"),
     theme: varchar("theme", { length: 30 }).notNull().default("minimal"),
     isPublished: boolean("is_published").notNull().default(false),

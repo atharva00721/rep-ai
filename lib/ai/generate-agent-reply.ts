@@ -1,4 +1,4 @@
-import { generateText, tool } from "ai";
+import { ModelMessage, generateText, tool } from "ai";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { agents } from "@/lib/schema";
@@ -74,7 +74,8 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
   const calendlyEnabled = !!input.calendlyEnabled && !!input.calendlySchedulingUrl;
 
   try {
-    let messages: any[] = [
+    y
+    const messages: any[] = [
       ...preparedContext.history,
       { role: "user", content: input.message },
     ];
@@ -88,7 +89,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
       });
 
       const result = await Promise.race([
-        (generateText as any)({
+        generateText({
           model: resolveChatModel(input.model),
           system: buildPrompt(input, preparedContext),
           messages,
@@ -96,7 +97,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
           maxOutputTokens: 1500,
           tools: {
             ...(calendarEnabled ? {
-              check_availability: (tool as any)({
+              check_availability: tool({
                 description: "CRITICAL: ONLY call this tool if the user explicitly provided a day, date, or relative time (like 'tomorrow'). NEVER call this tool if you don't know the exact date they want. If they just ask 'when are you free?', DO NOT call this tool — instead, ask them what day they prefer.",
                 parameters: z.object({
                   date: z.string().describe("The date to check in YYYY-MM-DD format, e.g., 2024-02-28."),
@@ -205,7 +206,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
             } : {}),
 
             ...(calendlyEnabled ? {
-              get_calendly_link: (tool as any)({
+              get_calendly_link: tool({
                 description: "Get the visitor's custom Calendly booking link. ONLY call this if the visitor specifically asks for a link, wants to 'book a meeting', 'schedule time', or 'see your calendar'. NEVER call this tool if Calendly is not enabled.",
                 parameters: z.object({}),
                 execute: async () => {
@@ -218,7 +219,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
               }),
             } : {}),
 
-            get_current_datetime: (tool as any)({
+            get_current_datetime: tool({
               description: "Get the current date and time. Use this when the visitor asks what time or date it is, or when you need to know the current moment to give a relevant answer.",
               parameters: z.object({}),
               execute: async () => {
@@ -233,7 +234,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
               },
             }),
 
-            get_current_date: (tool as any)({
+            get_current_date: tool({
               description: "Get today's date. Use this when the visitor asks what day or date it is.",
               parameters: z.object({}),
               execute: async () => {
@@ -247,7 +248,7 @@ async function requestReply(input: GenerateAgentReplyInput): Promise<{ text: str
               },
             }),
 
-            get_current_time: (tool as any)({
+            get_current_time: tool({
               description: "Get the current time. Use this when the visitor asks what time it is.",
               parameters: z.object({}),
               execute: async () => {
