@@ -100,16 +100,22 @@ export async function regeneratePortfolio() {
   if (!portfolio) throw new Error("Portfolio not found");
 
   const { consumeCredits, getCredits } = await import("@/lib/credits");
-  const CREDIT_COST = 1;
+  const { calculateSectionCount } = await import("@/lib/portfolio/section-registry");
+
+  const sectionCount = calculateSectionCount(
+    (portfolio.content as any)?.visibleSections,
+    (portfolio.onboardingData as any)?.sections
+  );
+  const creditCost = Math.max(1, sectionCount);
 
   const currentCredits = await getCredits(userId);
-  if (currentCredits < CREDIT_COST) {
-    throw new Error("Not enough credits to regenerate portfolio.");
+  if (currentCredits < creditCost) {
+    throw new Error(`Not enough credits. This action requires ${creditCost} credits.`);
   }
 
   await generatePortfolio(userId, portfolio.id);
 
-  const creditsConsumed = await consumeCredits(userId, CREDIT_COST);
+  const creditsConsumed = await consumeCredits(userId, creditCost);
   if (!creditsConsumed) {
     throw new Error("Not enough credits to regenerate portfolio.");
   }

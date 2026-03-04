@@ -1,11 +1,10 @@
 "use client";
 
-import { Sparkles, Plus, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface TestimonialsSectionProps {
@@ -62,7 +61,7 @@ export function TestimonialsSection({
                                         rows={3}
                                         className="resize-none bg-transparent border border-border/50 focus-visible:ring-1 focus-visible:ring-primary/20 italic pl-8"
                                     />
-                                    <Sparkles className="absolute left-2.5 top-2.5 size-4 text-primary/30" />
+                                    <MessageSquare className="absolute left-2.5 top-2.5 size-4 text-primary/30" />
                                 </div>
                             </div>
 
@@ -91,7 +90,7 @@ export function TestimonialsSection({
 
                     {(!content || content.length === 0) && (
                         <div className="py-12 text-center border-2 border-dashed border-primary/20 rounded-xl bg-primary/5">
-                            <Sparkles className="size-8 mx-auto text-muted-foreground/50 mb-3" />
+                            <MessageSquare className="size-8 mx-auto text-muted-foreground/50 mb-3" />
                             <p className="text-sm font-medium">No testimonials added yet</p>
                             <p className="text-xs text-muted-foreground mb-4">Build trust by adding client reviews.</p>
                             <Button size="sm" onClick={onAdd} className="rounded-full">

@@ -9,8 +9,7 @@ import { ACTIVE_PORTFOLIO_COOKIE } from "@/lib/active-portfolio";
 import type { OnboardingData } from "@/lib/onboarding/types";
 import { validateFinalOnboardingState } from "@/lib/onboarding/validation";
 import { consumeCredits, getCredits } from "@/lib/credits";
-
-const CREDIT_COST = 1;
+import { calculateSectionCount } from "@/lib/portfolio/section-registry";
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -69,10 +68,11 @@ export async function POST(request: Request) {
     // so they don't need to manually generate—their site info becomes a minimal landing page + agent.
     if (finalState.setupPath === "existing-site" && created.portfolioId) {
       try {
+        const creditCost = calculateSectionCount(finalState.sections);
         const currentCredits = await getCredits(session.user.id);
-        if (currentCredits >= CREDIT_COST) {
+        if (currentCredits >= creditCost) {
           await generatePortfolio(session.user.id, created.portfolioId);
-          await consumeCredits(session.user.id, CREDIT_COST);
+          await consumeCredits(session.user.id, creditCost);
         }
       } catch (err) {
         console.error("[onboarding-complete] Auto-generate content failed:", err);

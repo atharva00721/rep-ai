@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 
 export default function Content() {
     return (
-        <section className="bg-background py-24 sm:py-32 border-t border-border/40">
+        <section className="bg-background py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

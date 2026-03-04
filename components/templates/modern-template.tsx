@@ -66,7 +66,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
           <section className="pt-20 pb-28 border-b border-zinc-200 dark:border-zinc-800">
             <AnimateIn duration={0.7} from="bottom">
               <MonoLabel>Introduction</MonoLabel>
-              <h1 className="mt-6 text-[clamp(2.5rem,7vw,6rem)] font-semibold tracking-[-0.04em] leading-[1.0] text-balance text-zinc-900 dark:text-zinc-100">
+              <h1 className="mt-6 text-[clamp(2.5rem,7vw,6rem)]  tracking-[-0.04em] leading-[1.0] text-balance text-zinc-900 dark:text-zinc-100">
                 {content.hero.headline}
               </h1>
             </AnimateIn>
@@ -103,14 +103,14 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
             <AnimateIn>
               <MonoLabel>03 — Services</MonoLabel>
             </AnimateIn>
-            <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-zinc-200 dark:bg-zinc-800">
+            <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-px">
               {content.services.map((service, i) => (
                 <AnimateIn key={i} delay={i * 0.06}>
                   <div className="bg-zinc-50 dark:bg-zinc-950 p-8">
                     <span className="font-mono text-blue-600 dark:text-blue-400 text-xs mb-4 block">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                    <h3 className="text-base  text-zinc-900 dark:text-zinc-100 mb-3">
                       {service.title}
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
@@ -134,7 +134,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
                   <div className="py-8 border-b border-zinc-100 dark:border-zinc-900 last:border-0 group grid grid-cols-1 md:grid-cols-[3rem_1fr_auto] gap-4 md:gap-8 items-start">
                     <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400 mt-1">{String(i + 1).padStart(2, "0")}</span>
                     <div>
-                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-lg  text-zinc-900 dark:text-zinc-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {project.title}
                       </h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-2xl">{project.description}</p>
@@ -166,7 +166,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
                     )}
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-4 mb-2">
-                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{product.title}</h3>
+                        <h3 className="text-sm  text-zinc-900 dark:text-zinc-100">{product.title}</h3>
                         <span className="font-mono text-xs text-blue-600 dark:text-blue-400 shrink-0">{product.price}</span>
                       </div>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mb-4">{product.description}</p>
@@ -198,7 +198,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
                       <span className="text-sm font-medium text-blue-600 dark:text-blue-400 block">{item.company}</span>
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">{item.role}</h3>
+                      <h3 className="text-base  text-zinc-900 dark:text-zinc-100 mb-2">{item.role}</h3>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{item.description}</p>
                     </div>
                   </div>
@@ -221,7 +221,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
                       &ldquo;{t.quote}&rdquo;
                     </p>
                     <div className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t.author}</p>
+                      <p className="text-sm  text-zinc-900 dark:text-zinc-100">{t.author}</p>
                       {t.role && <p className="font-mono text-xs text-zinc-400 dark:text-zinc-600 mt-0.5">{t.role}</p>}
                     </div>
                   </div>
@@ -240,7 +240,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
               {content.faq.map((f, i) => (
                 <AnimateIn key={i} delay={i * 0.07} from="bottom">
                   <div className="p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3 flex gap-3">
+                    <h3 className="text-sm  text-zinc-900 dark:text-zinc-100 mb-3 flex gap-3">
                       <span className="font-mono text-blue-600 dark:text-blue-400 shrink-0">Q.</span>
                       {f.question}
                     </h3>
@@ -281,7 +281,7 @@ export function ModernTemplate({ content }: { content: PortfolioContent }) {
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8">
                 <MonoLabel>10 — Contact</MonoLabel>
                 <div className="space-y-6 max-w-2xl">
-                  <h2 className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 text-balance">
+                  <h2 className="text-4xl  tracking-tight text-zinc-900 dark:text-zinc-100 text-balance">
                     {content.cta.headline}
                   </h2>
                   <p className="text-lg text-zinc-500 dark:text-zinc-400 leading-relaxed">{content.cta.subtext}</p>

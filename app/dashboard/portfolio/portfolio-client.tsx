@@ -9,7 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Loader2, Save, X, RefreshCw, Eye } from "lucide-react";
+import { Loader2, Save, X, RefreshCw, Eye, Undo2, ArrowLeft, Send } from "lucide-react";
+import { SectionRegenerateButton } from "@/components/portfolio/section-regenerate-button";
+import { PromptInput, PromptInputSubmit, PromptInputTextarea, PromptInputBody, PromptInputFooter } from "@/components/ai-elements/prompt-input";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { HeroSection } from "./components/HeroSection";
 import { AboutSection } from "./components/AboutSection";
 import { ServicesSection } from "./components/ServicesSection";
@@ -24,7 +27,8 @@ import { SocialLinksSection } from "./components/SocialLinksSection";
 import Link from "next/link";
 import { usePortfolioActions } from "./_hooks/use-portfolio-actions";
 import { usePortfolioEditorStore } from "./_hooks/use-portfolio-editor-store";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useMutation } from "@tanstack/react-query";
 import type { PortfolioContent } from "../actions";
 import type { SocialLink, SocialPlatform } from "@/lib/validation/portfolio-schema";
@@ -65,6 +69,18 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncDialog, setShowSyncDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("hero");
+  const [isSectionRegenerating, setIsSectionRegenerating] = useState(false);
+  const [promptingSection, setPromptingSection] = useState<string | null>(null);
+  const [showUndo, setShowUndo] = useState(false);
+  const [undoSnapshot, setUndoSnapshot] = useState<any>(null);
+  const [undoTimeLeft, setUndoTimeLeft] = useState(10);
+  const undoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    };
+  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async (nextContent: PortfolioContent) => {
@@ -89,6 +105,67 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
   const handleCancel = () => {
     setEditedContent(content ? { ...content, visibleSections: mergeVisibleSections(content.visibleSections) } : content);
   };
+
+  /**
+   * Merges regenerated section data into editedContent.
+   * Handles both scalar sections (hero, about, cta) and array sections.
+   */
+  const handleSectionRegenerated = useCallback(
+    (data: Record<string, unknown>) => {
+      if (!editedContent) return;
+      setEditedContent({ ...editedContent, ...data } as PortfolioContent);
+      setPromptingSection(null);
+    },
+    [editedContent, setEditedContent]
+  );
+
+  const startUndoCountdown = useCallback(() => {
+    setUndoTimeLeft(10);
+    setShowUndo(true);
+    if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    undoTimerRef.current = setInterval(() => {
+      setUndoTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+          undoTimerRef.current = null;
+          setShowUndo(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const handleSectionRegeneration = async (direction: string) => {
+    if (!activeTab) return;
+    setIsSectionRegenerating(true);
+    setUndoSnapshot((editedContent as any)[activeTab]);
+
+    try {
+      const res = await fetch("/api/generate-portfolio/section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section: activeTab, direction: direction.trim() }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error ?? "Failed to regenerate");
+      handleSectionRegenerated(json.data);
+      startUndoCountdown();
+    } catch (err) {
+      console.error("[section-regenerate]", err);
+    } finally {
+      setIsSectionRegenerating(false);
+    }
+  };
+
+  const handleUndo = useCallback(() => {
+    if (undoSnapshot !== null && activeTab) {
+      handleSectionRegenerated({ [activeTab]: undoSnapshot });
+    }
+    if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    setShowUndo(false);
+    setUndoSnapshot(null);
+  }, [undoSnapshot, activeTab, handleSectionRegenerated]);
 
   const {
     updateHero,
@@ -316,7 +393,7 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowSyncDialog(false)}>Cancel</Button>
                   <Button onClick={handleSyncFromWebsite} disabled={isSyncing || !syncUrl.trim()}>
-                    {isSyncing ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Sparkles className="size-4 mr-2" />}
+                    {isSyncing ? <Loader2 className="size-4 mr-2 animate-spin" /> : null}
                     Start Sync
                   </Button>
                 </DialogFooter>
@@ -350,197 +427,329 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
           )}
 
           <Button size="icon" variant="ghost" onClick={handleRegenerate} disabled={isRegenerating} className="h-9 w-9 text-primary hover:text-primary hover:bg-primary/10">
-            {isRegenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+            {isRegenerating ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
           </Button>
         </div>
       </div>
 
-      {
-        displayContent && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="flex flex-col lg:flex-row gap-8 items-start">
-            <Card className="w-full lg:w-72 shrink-0 overflow-hidden border-primary/10 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-md sticky top-6">
-              <div className="p-5 bg-primary/5 border-b">
-                <h3 className="text-sm tracking-tight">Command Center</h3>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Navigation & Control</p>
-              </div>
-              <TabsList className="flex flex-col h-auto bg-transparent p-3 gap-1.5 w-full justify-start items-stretch">
-                {PORTFOLIO_EDITOR_TABS.map((item) => (
-                  <div key={item.key} className="flex items-center group">
-                    <TabsTrigger
-                      value={item.key}
-                      className="flex-1 justify-start gap-3 px-4 py-2.5 text-sm font-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-xl"
-                    >
-                      <span>{item.label}</span>
-                    </TabsTrigger>
-                  </div>
-                ))}
-              </TabsList>
-              <div className="p-5 bg-muted/30 border-t space-y-3">
-                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  <span>Health Score</span>
-                  <span className="text-primary">{Math.round((visibleSectionCount / 11) * 100)}%</span>
+      {displayContent ? (
+        <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="flex flex-col lg:flex-row gap-8 items-start">
+          <Card className="w-full lg:w-72 shrink-0 overflow-hidden border-primary/10 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-md sticky top-6">
+            <div className="p-5 bg-primary/5 border-b">
+              <h3 className="text-sm tracking-tight">Command Center</h3>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">Navigation & Control</p>
+            </div>
+            <TabsList className="flex flex-col h-auto bg-transparent p-3 gap-1.5 w-full justify-start items-stretch">
+              {PORTFOLIO_EDITOR_TABS.map((item) => (
+                <div key={item.key} className="flex items-center group">
+                  <TabsTrigger
+                    value={item.key}
+                    className="flex-1 justify-start gap-3 px-4 py-2.5 text-sm font-normal data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 rounded-xl"
+                  >
+                    <span>{item.label}</span>
+                  </TabsTrigger>
                 </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden p-0.5">
-                  <div
-                    className="h-full bg-primary transition-all duration-1000 ease-out rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]"
-                    style={{ width: `${(visibleSectionCount / 11) * 100}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Aim for 80%+ visibility for the best visitor engagement.
-                </p>
+              ))}
+            </TabsList>
+            <div className="p-5 bg-muted/30 border-t space-y-3">
+              <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                <span>Health Score</span>
+                <span className="text-primary">{Math.round((visibleSectionCount / 11) * 100)}%</span>
               </div>
-            </Card>
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden p-0.5">
+                <div
+                  className="h-full bg-primary transition-all duration-1000 ease-out rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                  style={{ width: `${(visibleSectionCount / 11) * 100}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Aim for 80%+ visibility for the best visitor engagement.
+              </p>
+            </div>
+          </Card>
 
-            <div className="flex-1 min-w-0 w-full animate-in fade-in slide-in-from-right-4 duration-500">
-              <Card className="border-primary/10 shadow-2xl shadow-primary/5 min-h-[600px] flex flex-col bg-background/40 backdrop-blur-sm overflow-hidden border-2 border-primary/5">
-                <CardHeader className="py-6 px-8 border-b bg-muted/5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-2xl tracking-tight capitalize">{activeTab}</h2>
-                      </div>
-                    </div>
+          <div className="flex-1 min-w-0 w-full animate-in fade-in slide-in-from-right-4 duration-500">
+            <Card className="border-primary/10 shadow-2xl shadow-primary/5 min-h-[600px] flex flex-col bg-background/40 backdrop-blur-sm overflow-hidden border-2 border-primary/5">
+              <CardHeader className="py-6 px-8 border-b bg-muted/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-3 bg-muted/50 px-3 py-1.5 rounded-full border">
-                        <Label htmlFor={`${activeTab}-visibility`} className="text-xs font-normal cursor-pointer">Visible</Label>
-                        <Switch
-                          id={`${activeTab}-visibility`}
-                          checked={activeTab === 'socials' ? true : isContentSectionVisible(activeTab as PortfolioSectionKey)}
-                          disabled={activeTab === 'socials'}
-                          onCheckedChange={(checked) => updateVisibleSection(activeTab as PortfolioSectionKey, checked)}
-                          className="scale-75 data-[state=checked]:bg-primary"
-                        />
-                      </div>
+                      <h2 className="text-2xl tracking-tight capitalize">{activeTab}</h2>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="p-8 flex-1">
-                  <TabsContent value="hero" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <HeroSection
-                      editMode={true}
-                      content={displayContent?.hero || null}
-                      onUpdate={updateHero}
-                      isVisible={isContentSectionVisible("hero")}
-                      onVisibilityChange={(checked) => updateVisibleSection("hero", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="about" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <AboutSection
-                      editMode={true}
-                      content={displayContent?.about || null}
-                      onUpdate={updateAbout}
-                      isVisible={isContentSectionVisible("about")}
-                      onVisibilityChange={(checked) => updateVisibleSection("about", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="services" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <ServicesSection
-                      editMode={true}
-                      content={displayContent?.services || null}
-                      onUpdate={updateService}
-                      onAdd={addService}
-                      onRemove={removeService}
-                      isVisible={isContentSectionVisible("services")}
-                      onVisibilityChange={(checked) => updateVisibleSection("services", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="projects" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <ProjectsSection
-                      editMode={true}
-                      content={displayContent?.projects || null}
-                      onUpdate={updateProject}
-                      onAdd={addProject}
-                      onRemove={removeProject}
-                      isVisible={isContentSectionVisible("projects")}
-                      onVisibilityChange={(checked) => updateVisibleSection("projects", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="products" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <ProductsSection
-                      editMode={true}
-                      content={displayContent?.products || null}
-                      onUpdate={updateProduct}
-                      onAdd={addProduct}
-                      onRemove={removeProduct}
-                      isVisible={isContentSectionVisible("products")}
-                      onVisibilityChange={(checked) => updateVisibleSection("products", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="history" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <HistorySection
-                      editMode={true}
-                      content={displayContent?.history || null}
-                      onUpdate={updateHistory}
-                      onAdd={addHistory}
-                      onRemove={removeHistory}
-                      isVisible={isContentSectionVisible("history")}
-                      onVisibilityChange={(checked) => updateVisibleSection("history", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="testimonials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <TestimonialsSection
-                      editMode={true}
-                      content={displayContent?.testimonials || null}
-                      onUpdate={updateTestimonial}
-                      onAdd={addTestimonial}
-                      onRemove={removeTestimonial}
-                      isVisible={isContentSectionVisible("testimonials")}
-                      onVisibilityChange={(checked) => updateVisibleSection("testimonials", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="faq" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <FAQSection
-                      editMode={true}
-                      content={displayContent?.faq || null}
-                      onUpdate={updateFaq}
-                      onAdd={addFaq}
-                      onRemove={removeFaq}
-                      isVisible={isContentSectionVisible("faq")}
-                      onVisibilityChange={(checked) => updateVisibleSection("faq", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="gallery" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <GallerySection
-                      editMode={true}
-                      content={displayContent?.gallery || null}
-                      onUpdate={updateGallery}
-                      onAdd={addGalleryImage}
-                      onRemove={removeGalleryImage}
-                      isVisible={isContentSectionVisible("gallery")}
-                      onVisibilityChange={(checked) => updateVisibleSection("gallery", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="cta" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <CTASection
-                      editMode={true}
-                      content={displayContent?.cta || null}
-                      onUpdate={updateCta}
-                      isVisible={isContentSectionVisible("cta")}
-                      onVisibilityChange={(checked) => updateVisibleSection("cta", checked)}
-                    />
-                  </TabsContent>
-                  <TabsContent value="socials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                    <SocialLinksSection
-                      editMode={true}
-                      availablePlatforms={AVAILABLE_SOCIAL_PLATFORMS}
-                      getSocialLink={getSocialLink}
-                      onUpdate={updateSocialLink}
-                      isVisible={true}
-                    />
-                  </TabsContent>
-                </CardContent>
-                {/* <div className="p-4 bg-muted/5 border-t text-center">
+                  <div className="flex items-center gap-2">
+                    {/* Per-section regenerate button — hidden for socials */}
+                    {activeTab !== "socials" && editedContent && (
+                      <SectionRegenerateButton
+                        section={activeTab}
+                        isPrompting={promptingSection === activeTab}
+                        onTogglePrompt={(active) => setPromptingSection(active ? activeTab : null)}
+                        isLoading={isSectionRegenerating}
+                        showUndo={showUndo}
+                        undoTimeLeft={undoTimeLeft}
+                        onUndo={handleUndo}
+                      />
+                    )}
+                    <div className="flex items-center gap-3 bg-muted/50 px-3 py-1.5 rounded-full border">
+                      <Label htmlFor={`${activeTab}-visibility`} className="text-xs font-normal cursor-pointer">Visible</Label>
+                      <Switch
+                        id={`${activeTab}-visibility`}
+                        checked={activeTab === 'socials' ? true : isContentSectionVisible(activeTab as PortfolioSectionKey)}
+                        disabled={activeTab === 'socials'}
+                        onCheckedChange={(checked) => updateVisibleSection(activeTab as PortfolioSectionKey, checked)}
+                        className="scale-75 data-[state=checked]:bg-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="relative p-8 flex-1 overflow-hidden min-h-[400px] flex flex-col">
+                <AnimatePresence mode="wait">
+                  {isSectionRegenerating ? (
+                    <motion.div
+                      initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                      animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
+                      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/40 dark:bg-black/40 p-8 text-center"
+                    >
+                      <div className="relative mb-6">
+                        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/20 shadow-2xl shadow-primary/40 backdrop-blur-xl ring-1 ring-white/20">
+                          <RefreshCw className="size-8 animate-spin text-primary" />
+                        </div>
+                      </div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-2"
+                      >
+                        <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">Regenerating {activeTab}...</h3>
+                        <div className="flex justify-center">
+                          <Shimmer className="text-sm text-zinc-500 dark:text-zinc-400">Our AI is drafting professional content based on your request.</Shimmer>
+                        </div>
+                      </motion.div>
+
+                      <div className="mt-12 flex w-full max-w-xs gap-1.5 px-4">
+                        {[0, 1, 2, 3].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={{
+                              opacity: [0.3, 1, 0.3],
+                              scaleX: [1, 1.5, 1],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                            }}
+                            className="h-1 flex-1 rounded-full bg-primary/40"
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  ) : promptingSection === activeTab ? (
+                    <motion.div
+                      key="prompting"
+                      initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                      className="h-full flex-1 flex flex-col items-center justify-center py-12"
+                    >
+                      <div className="max-w-xl w-full space-y-8">
+                        <div className="space-y-3 text-center">
+                          <div className="space-y-1">
+                            <h2 className="text-2xl font-bold tracking-tight">Regenerate {activeTab}</h2>
+                            <p className="text-muted-foreground">What would you like to change about this section?</p>
+                          </div>
+                        </div>
+
+                        <PromptInput
+                          onSubmit={(msg) => handleSectionRegeneration(msg.text)}
+                          className="bg-muted/10 rounded-[28px] border border-primary/20 p-1.5 shadow-2xl ring-1 ring-white/5"
+                        >
+                          <PromptInputBody>
+                            <PromptInputTextarea
+                              placeholder={`What should we change about your ${activeTab} section?`}
+                              className="min-h-[120px] px-6 pt-5 text-lg"
+                              name="message"
+                              autoFocus
+                            />
+                          </PromptInputBody>
+                          <PromptInputFooter className="px-4 pb-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              type="button"
+                              className="text-muted-foreground hover:text-foreground rounded-full h-10"
+                              onClick={() => setPromptingSection(null)}
+                            >
+                              <ArrowLeft className="mr-2 size-4" />
+                              Back
+                            </Button>
+                            <PromptInputSubmit
+                              className="rounded-full bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                            >
+                              <Send className=" size-3" />
+                            </PromptInputSubmit>
+                          </PromptInputFooter>
+                        </PromptInput>
+
+                        <div className="flex flex-wrap justify-center gap-2 pt-4 opacity-60">
+                          {["More professional", "More technical", "Witty & Fun", "Action oriented"].map((suggestion) => (
+                            <button
+                              key={suggestion}
+                              className="text-[11px] font-medium border rounded-full px-3 py-1 hover:bg-muted transition-colors"
+                              onClick={() => {
+                                const area = document.querySelector('textarea[name="message"]') as HTMLTextAreaElement;
+                                if (area) {
+                                  area.value = suggestion;
+                                  area.focus();
+                                }
+                              }}
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="editor"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="h-full flex-1"
+                    >
+
+                      <TabsContent value="hero" className="mt-0 focus-visible:outline-none focus-visible:ring-0 h-full">
+                        <HeroSection
+                          editMode={true}
+                          content={displayContent?.hero || null}
+                          onUpdate={updateHero}
+                          isVisible={isContentSectionVisible("hero")}
+                          onVisibilityChange={(checked) => updateVisibleSection("hero", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="about" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <AboutSection
+                          editMode={true}
+                          content={displayContent?.about || null}
+                          onUpdate={updateAbout}
+                          isVisible={isContentSectionVisible("about")}
+                          onVisibilityChange={(checked) => updateVisibleSection("about", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="services" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <ServicesSection
+                          editMode={true}
+                          content={displayContent?.services || null}
+                          onUpdate={updateService}
+                          onAdd={addService}
+                          onRemove={removeService}
+                          isVisible={isContentSectionVisible("services")}
+                          onVisibilityChange={(checked) => updateVisibleSection("services", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="projects" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <ProjectsSection
+                          editMode={true}
+                          content={displayContent?.projects || null}
+                          onUpdate={updateProject}
+                          onAdd={addProject}
+                          onRemove={removeProject}
+                          isVisible={isContentSectionVisible("projects")}
+                          onVisibilityChange={(checked) => updateVisibleSection("projects", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="products" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <ProductsSection
+                          editMode={true}
+                          content={displayContent?.products || null}
+                          onUpdate={updateProduct}
+                          onAdd={addProduct}
+                          onRemove={removeProduct}
+                          isVisible={isContentSectionVisible("products")}
+                          onVisibilityChange={(checked) => updateVisibleSection("products", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="history" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <HistorySection
+                          editMode={true}
+                          content={displayContent?.history || null}
+                          onUpdate={updateHistory}
+                          onAdd={addHistory}
+                          onRemove={removeHistory}
+                          isVisible={isContentSectionVisible("history")}
+                          onVisibilityChange={(checked) => updateVisibleSection("history", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="testimonials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <TestimonialsSection
+                          editMode={true}
+                          content={displayContent?.testimonials || null}
+                          onUpdate={updateTestimonial}
+                          onAdd={addTestimonial}
+                          onRemove={removeTestimonial}
+                          isVisible={isContentSectionVisible("testimonials")}
+                          onVisibilityChange={(checked) => updateVisibleSection("testimonials", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="faq" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <FAQSection
+                          editMode={true}
+                          content={displayContent?.faq || null}
+                          onUpdate={updateFaq}
+                          onAdd={addFaq}
+                          onRemove={removeFaq}
+                          isVisible={isContentSectionVisible("faq")}
+                          onVisibilityChange={(checked) => updateVisibleSection("faq", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="gallery" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <GallerySection
+                          editMode={true}
+                          content={displayContent?.gallery || null}
+                          onUpdate={updateGallery}
+                          onAdd={addGalleryImage}
+                          onRemove={removeGalleryImage}
+                          isVisible={isContentSectionVisible("gallery")}
+                          onVisibilityChange={(checked) => updateVisibleSection("gallery", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="cta" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <CTASection
+                          editMode={true}
+                          content={displayContent?.cta || null}
+                          onUpdate={updateCta}
+                          isVisible={isContentSectionVisible("cta")}
+                          onVisibilityChange={(checked) => updateVisibleSection("cta", checked)}
+                        />
+                      </TabsContent>
+                      <TabsContent value="socials" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                        <SocialLinksSection
+                          editMode={true}
+                          availablePlatforms={AVAILABLE_SOCIAL_PLATFORMS}
+                          getSocialLink={getSocialLink}
+                          onUpdate={updateSocialLink}
+                          isVisible={true}
+                        />
+                      </TabsContent>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+              {/* <div className="p-4 bg-muted/5 border-t text-center">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
                     <Layout className="size-3" />
                     Portfolio AI Command Center &copy; 2024
                   </p>
                 </div> */}
-              </Card>
-            </div>
-          </Tabs>
-        )
-      }
+            </Card>
+          </div>
+        </Tabs>
+      ) : null}
 
       {/* No content yet */}
       {
@@ -552,13 +761,13 @@ export function PortfolioClient({ portfolio, plan = "free", content }: Portfolio
                 Your portfolio is a blank canvas. Let our AI help you generate a professional presence in seconds.
               </p>
               <Button size="lg" onClick={handleRegenerate} disabled={isRegenerating} className="rounded-full px-8 shadow-xl shadow-primary/20">
-                {isRegenerating ? <Loader2 className="size-5 mr-2 animate-spin" /> : <Sparkles className="size-5 mr-2" />}
+                {isRegenerating ? <Loader2 className="size-5 mr-2 animate-spin" /> : <RefreshCw className="size-5 mr-2" />}
                 Generate My Portfolio
               </Button>
             </CardContent>
           </Card>
         )
       }
-    </div >
+    </div>
   );
 }

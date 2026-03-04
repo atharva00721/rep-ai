@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, AlertCircle, Sparkles, Globe, Activity, Users, TrendingUp, RefreshCw } from "lucide-react";
+import { ArrowRight, AlertCircle, Globe, Activity, Users, TrendingUp, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { CopyButton } from "@/components/dashboard/copy-button";
 import { redirect } from "next/navigation";
@@ -49,7 +49,6 @@ export default async function OverviewPage() {
       {/* Warning banners */}
       {!hasContent && (
         <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4 flex items-start gap-3">
-          <Sparkles className="size-5 text-yellow-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium">Portfolio content not generated yet</p>
             <p className="text-xs text-muted-foreground mt-1">
