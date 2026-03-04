@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createKnowledge, deleteKnowledge, scrapeWebsite, updateKnowledge } from "../api";
 import { CreateKnowledgeInput, ScrapeWebsiteInput, UpdateKnowledgeInput } from "../types";
