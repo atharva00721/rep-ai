@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { AppSidebar } from "./app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";

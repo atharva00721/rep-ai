@@ -3,7 +3,7 @@ import { users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { getActivePortfolio } from "@/lib/active-portfolio";
 import { getAgentByPortfolioId, getAgentByUserId } from "@/lib/agent/configure";
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 
 async function requireAuthUserId() {
   const session = await getSession();

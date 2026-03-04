@@ -1,6 +1,6 @@
 "use server";
 
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { handlePublicChat, type PublicChatResult } from "@/lib/ai/public-chat-handler";
 import { sanitizeHistory } from "@/lib/validation/public-chat";
 

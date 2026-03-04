@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { OnboardingChatWrapper } from "@/app/onboarding/onboarding-chat-wrapper";
 import { checkPortfolioLimit } from "@/lib/billing";
 

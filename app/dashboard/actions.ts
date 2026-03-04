@@ -1,6 +1,6 @@
 "use server";
 
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { db } from "@/lib/db";
 import { portfolios } from "@/lib/schema";
 import { eq } from "drizzle-orm";

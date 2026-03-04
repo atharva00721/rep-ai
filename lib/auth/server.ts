@@ -1,4 +1,4 @@
-import { auth as authFunction, handlers, signIn, signOut, authInstance } from "./auth-helper";
+import { auth as authFunction, handlers, signIn, signOut, authInstance } from "./config";
 
 export { handlers, signIn, signOut };
 export const auth = authFunction;

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { refineOnboardingAnswer } from "@/lib/ai/refine-onboarding";
 import { getPortfolioByHandle } from "@/lib/db/portfolio";
 import { getNextStep, getQuestionForStep } from "@/lib/onboarding/state-machine";

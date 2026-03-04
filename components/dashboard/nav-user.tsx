@@ -34,7 +34,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { signOut } from "@/auth-client";
+import { signOut } from "@/lib/auth/client";
 
 export function NavUser({
     user,

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { authInstance } from "@/auth-helper";
+import { authInstance } from "@/lib/auth/config";
 
 const protectedRoutes = [
   "/dashboard",

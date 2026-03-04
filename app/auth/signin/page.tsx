@@ -1,6 +1,6 @@
 "use client"
 
-import { authClient } from "@/auth-client"
+import { authClient } from "@/lib/auth/client"
 import { SignedUpToast } from "@/app/auth/_components/signed-up-toast"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"

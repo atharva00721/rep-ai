@@ -1,7 +1,7 @@
 "use client"
 
 
-import { authClient } from "@/auth-client"
+import { authClient } from "@/lib/auth/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"

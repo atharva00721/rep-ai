@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/auth";
+import { getSession } from "@/lib/auth/server";
 import { getActivePortfolio } from "@/lib/active-portfolio";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
