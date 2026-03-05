@@ -48,6 +48,8 @@ interface AgentWidgetTabProps {
   widgetShadow: "none" | "sm" | "md" | "lg";
   widgetRadius: "full" | "md" | "sm" | "none";
   widgetAvatarUrl: string;
+  widgetProactive: string;
+  widgetProactiveDelay: number;
   setWidgetLabel: (value: string) => void;
   setWidgetPosition: (value: "bottom-right" | "bottom-left") => void;
   setWidgetWidth: (value: number) => void;
@@ -57,9 +59,11 @@ interface AgentWidgetTabProps {
   setWidgetGreeting: (value: string) => void;
   setWidgetShadow: (value: "none" | "sm" | "md" | "lg") => void;
   setWidgetRadius: (value: "full" | "md" | "sm" | "none") => void;
+  setWidgetProactive: (value: string) => void;
+  setWidgetProactiveDelay: (value: number) => void;
 }
 
-function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreeting, widgetAvatarUrl, widgetLabel, widgetShadow, widgetRadius }: {
+function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreeting, widgetAvatarUrl, widgetLabel, widgetShadow, widgetRadius, widgetProactive }: {
   widgetStyle: "pill" | "icon";
   widgetColor: string;
   widgetPosition: "bottom-right" | "bottom-left";
@@ -68,6 +72,7 @@ function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreetin
   widgetLabel: string;
   widgetShadow: "none" | "sm" | "md" | "lg";
   widgetRadius: "full" | "md" | "sm" | "none";
+  widgetProactive: string;
 }) {
   const shadow = SHADOW_MAP[widgetShadow];
   const radius = widgetStyle === "icon" ? RADIUS_MAP_ICON[widgetRadius] : RADIUS_MAP_PILL[widgetRadius];
@@ -101,17 +106,17 @@ function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreetin
           className="absolute bottom-6 pointer-events-none flex flex-col gap-2"
           style={{ [isRight ? "right" : "left"]: "24px", alignItems: isRight ? "flex-end" : "flex-start" }}
         >
-          {/* greeting tooltip */}
-          {widgetStyle === "icon" && widgetGreeting && (
+          {/* greeting tooltip OR proactive bubble */}
+          {widgetStyle === "icon" && (widgetGreeting || widgetProactive) && (
             <div
-              className="bg-background text-foreground text-xs px-3 py-2 border font-medium shadow-sm max-w-[160px] leading-snug"
+              className="bg-background text-foreground text-xs px-3 py-2 border font-medium shadow-sm max-w-[160px] leading-snug relative"
               style={{
                 borderRadius: "10px",
                 borderBottomRightRadius: isRight ? "3px" : "10px",
                 borderBottomLeftRadius: isRight ? "10px" : "3px",
               }}
             >
-              {widgetGreeting}
+              {widgetProactive || widgetGreeting}
             </div>
           )}
 
@@ -141,6 +146,7 @@ function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreetin
                 fontWeight: 500,
                 fontSize: "15px",
                 whiteSpace: "nowrap",
+                position: "relative",
               }),
             }}
           >
@@ -153,6 +159,27 @@ function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreetin
               )
             ) : (
               widgetLabel || "Chat"
+            )}
+            {/* unread badge preview */}
+            {widgetProactive && (
+              <div style={{
+                position: "absolute",
+                top: "-4px",
+                [isRight ? "right" : "left"]: "-4px",
+                background: "#ef4444",
+                color: "#fff",
+                borderRadius: "9999px",
+                fontSize: "11px",
+                fontWeight: 700,
+                minWidth: "20px",
+                height: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 5px",
+                border: "2px solid #fff",
+                boxShadow: "0 2px 8px rgba(239,68,68,0.5)",
+              }}>1</div>
             )}
           </div>
         </div>
@@ -180,6 +207,8 @@ export function AgentWidgetTab(props: AgentWidgetTabProps) {
     widgetShadow,
     widgetRadius,
     widgetAvatarUrl,
+    widgetProactive,
+    widgetProactiveDelay,
     setWidgetLabel,
     setWidgetPosition,
     setWidgetWidth,
@@ -189,6 +218,8 @@ export function AgentWidgetTab(props: AgentWidgetTabProps) {
     setWidgetGreeting,
     setWidgetShadow,
     setWidgetRadius,
+    setWidgetProactive,
+    setWidgetProactiveDelay,
   } = props;
 
   return (
@@ -297,6 +328,19 @@ export function AgentWidgetTab(props: AgentWidgetTabProps) {
                     <Input id="widget-height" type="number" min={420} max={720} value={widgetHeight} onChange={(e) => setWidgetHeight(Math.max(420, Math.min(720, Number(e.target.value) || 520)))} className="shadow-sm" />
                   </div>
 
+                  {/* Proactive message */}
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="widget-proactive" className="font-semibold">Proactive Message <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
+                    <Input id="widget-proactive" value={widgetProactive} maxLength={80} onChange={(e) => setWidgetProactive(e.target.value)} className="shadow-sm" placeholder="e.g. 👋 Hey! Got a question? I'm here." />
+                    {widgetProactive && (
+                      <div className="flex items-center gap-3 mt-2">
+                        <Label htmlFor="widget-proactive-delay" className="text-sm shrink-0">Show after</Label>
+                        <input id="widget-proactive-delay" type="range" min={1} max={60} step={1} value={widgetProactiveDelay} onChange={(e) => setWidgetProactiveDelay(Number(e.target.value))} className="flex-1 accent-foreground" />
+                        <span className="text-sm font-mono w-10 text-right shrink-0">{widgetProactiveDelay}s</span>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">Appears with a 🔴 badge after the delay if the widget is still closed.</p>
+                  </div>
                 </div>
 
                 {/* Avatar info strip */}
@@ -322,6 +366,7 @@ export function AgentWidgetTab(props: AgentWidgetTabProps) {
                 widgetLabel={widgetLabel}
                 widgetShadow={widgetShadow}
                 widgetRadius={widgetRadius}
+                widgetProactive={widgetProactive}
               />
             </div>
 

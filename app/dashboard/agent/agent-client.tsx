@@ -55,6 +55,8 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
   const [widgetGreeting, setWidgetGreeting] = useState("Need help?");
   const [widgetShadow, setWidgetShadow] = useState<"none" | "sm" | "md" | "lg">("md");
   const [widgetRadius, setWidgetRadius] = useState<"full" | "md" | "sm" | "none">("full");
+  const [widgetProactive, setWidgetProactive] = useState("");
+  const [widgetProactiveDelay, setWidgetProactiveDelay] = useState(5);
 
   const { config, chatMessages, chatInput, isChatLoading, setConfig, addChatMessage, clearChatMessages, setChatInput, setIsChatLoading, resetConfig } = useAgentStore();
 
@@ -195,8 +197,13 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
     if (avatarUrl) url.searchParams.set("avatar", avatarUrl);
     if (widgetShadow !== "md") url.searchParams.set("shadow", widgetShadow);
     if (widgetRadius !== "full") url.searchParams.set("radius", widgetRadius);
+    const trimmedProactive = widgetProactive.trim();
+    if (trimmedProactive) {
+      url.searchParams.set("proactive", trimmedProactive.slice(0, 80));
+      if (widgetProactiveDelay !== 5) url.searchParams.set("proactiveDelay", String(widgetProactiveDelay));
+    }
     return url.toString();
-  }, [agentId, appOrigin, canGenerateWidget, widgetHeight, widgetLabel, widgetPosition, widgetWidth, widgetColor, widgetStyle, widgetGreeting, widgetShadow, widgetRadius, config.avatarUrl]);
+  }, [agentId, appOrigin, canGenerateWidget, widgetHeight, widgetLabel, widgetPosition, widgetWidth, widgetColor, widgetStyle, widgetGreeting, widgetShadow, widgetRadius, config.avatarUrl, widgetProactive, widgetProactiveDelay]);
 
   const scriptSnippet = scriptUrl ? `<script async src="${scriptUrl}"></script>` : "";
   const iframeSnippet = canGenerateWidget && agentId
@@ -244,7 +251,7 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
         tabs={[...AGENT_TABS]}
         renderContent={(tab) => {
           if (tab.value === "settings") return <AgentSettingsTab config={config} isPending={isPending} agentId={agentId} onSave={handleSave} setConfig={setConfig} />;
-          if (tab.value === "widget") return <AgentWidgetTab canGenerateWidget={canGenerateWidget} isWidgetReady={isWidgetReady} scriptUrl={scriptUrl} scriptSnippet={scriptSnippet} iframeSnippet={iframeSnippet} appOrigin={appOrigin} agentId={agentId} widgetLabel={widgetLabel} widgetPosition={widgetPosition} widgetWidth={widgetWidth} widgetHeight={widgetHeight} widgetColor={widgetColor} widgetStyle={widgetStyle} widgetGreeting={widgetGreeting} widgetShadow={widgetShadow} widgetRadius={widgetRadius} widgetAvatarUrl={config.avatarUrl || ""} setWidgetLabel={setWidgetLabel} setWidgetPosition={setWidgetPosition} setWidgetWidth={setWidgetWidth} setWidgetHeight={setWidgetHeight} setWidgetColor={setWidgetColor} setWidgetStyle={setWidgetStyle} setWidgetGreeting={setWidgetGreeting} setWidgetShadow={setWidgetShadow} setWidgetRadius={setWidgetRadius} />;
+          if (tab.value === "widget") return <AgentWidgetTab canGenerateWidget={canGenerateWidget} isWidgetReady={isWidgetReady} scriptUrl={scriptUrl} scriptSnippet={scriptSnippet} iframeSnippet={iframeSnippet} appOrigin={appOrigin} agentId={agentId} widgetLabel={widgetLabel} widgetPosition={widgetPosition} widgetWidth={widgetWidth} widgetHeight={widgetHeight} widgetColor={widgetColor} widgetStyle={widgetStyle} widgetGreeting={widgetGreeting} widgetShadow={widgetShadow} widgetRadius={widgetRadius} widgetAvatarUrl={config.avatarUrl || ""} widgetProactive={widgetProactive} widgetProactiveDelay={widgetProactiveDelay} setWidgetLabel={setWidgetLabel} setWidgetPosition={setWidgetPosition} setWidgetWidth={setWidgetWidth} setWidgetHeight={setWidgetHeight} setWidgetColor={setWidgetColor} setWidgetStyle={setWidgetStyle} setWidgetGreeting={setWidgetGreeting} setWidgetShadow={setWidgetShadow} setWidgetRadius={setWidgetRadius} setWidgetProactive={setWidgetProactive} setWidgetProactiveDelay={setWidgetProactiveDelay} />;
           if (tab.value === "integrations") return <AgentIntegrationsTab config={config} isDisconnectingCalendar={isDisconnectingCalendar} handleCalendarDisconnect={handleCalendarDisconnect} isDisconnectingCalendly={isDisconnectingCalendly} handleCalendlyDisconnect={handleCalendlyDisconnect} plan={plan} handleToggleSpy={handleToggleSpy} />;
           if (tab.value === "test") return <AgentTestTab canTest={canTest} chatMessages={chatMessages} chatInput={chatInput} isChatLoading={isChatLoading} clearChatMessages={clearChatMessages} setChatInput={setChatInput} sendTestMessage={sendTestMessage} isAgentEnabled={config.isEnabled} />;
           return null;

@@ -63,6 +63,8 @@ export async function GET(request: Request) {
   const radius = sanitizeRadius(searchParams.get("radius"));
   const buttonShadow = SHADOW_MAP[shadow];
   const buttonRadius = style === "pill" ? RADIUS_MAP_PILL[radius] : RADIUS_MAP_ICON[radius];
+  const proactive = searchParams.get("proactive")?.trim() || "";
+  const proactiveDelay = clampNumber(searchParams.get("proactiveDelay"), 1, 120, 5);
 
   if (!validateUuid(agentId)) {
     return new NextResponse("console.error('Invalid agentId');", {
@@ -162,12 +164,18 @@ export async function GET(request: Request) {
   button.onmouseover = function() { button.style.transform = 'scale(1.06)'; };
   button.onmouseout = function() { button.style.transform = 'scale(1)'; };
 
-  /* ---- greeting tooltip ---- */
+  /* ---- greeting tooltip + proactive badge ---- */
   var greetingParam = ${JSON.stringify(greeting)};
+  var proactiveParam = ${JSON.stringify(proactive)};
+  var proactiveDelay = ${JSON.stringify(proactiveDelay)};
   var tooltip = null;
-  if (greetingParam) {
+  var badge = null;
+  var unread = 0;
+
+  function showTooltip(text) {
+    if (tooltip) { tooltip.remove(); }
     tooltip = document.createElement('div');
-    tooltip.innerText = greetingParam;
+    tooltip.innerText = text;
     tooltip.style.cssText = [
       'position:fixed',
       'bottom:88px',
@@ -191,6 +199,91 @@ export async function GET(request: Request) {
     document.body.appendChild(tooltip);
   }
 
+  function dismissTooltip() {
+    if (!tooltip) return;
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translateY(4px)';
+    setTimeout(function() { if (tooltip) { tooltip.remove(); tooltip = null; } }, 200);
+  }
+
+  function showBadge(count) {
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.style.cssText = [
+        'position:absolute',
+        'top:-4px',
+        pos === 'bottom-right' ? 'right:-4px' : 'left:-4px',
+        'min-width:20px',
+        'height:20px',
+        'background:#ef4444',
+        'color:#fff',
+        'border-radius:9999px',
+        'font-size:11px',
+        'font-weight:700',
+        'font-family:system-ui,sans-serif',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'padding:0 5px',
+        'border:2px solid #fff',
+        'box-shadow:0 2px 8px rgba(239,68,68,0.5)',
+        'transform:scale(0)',
+        'transition:transform 0.3s cubic-bezier(.34,1.56,.64,1)',
+        'pointer-events:none',
+        'z-index:1',
+      ].join(';');
+      button.style.position = 'fixed'; /* ensure relative context for badge */
+      /* wrap button in a relative container so badge positions correctly */
+      var wrapper = document.createElement('div');
+      wrapper.style.cssText = [
+        'position:fixed',
+        'bottom:20px',
+        pos === 'bottom-right' ? 'right:20px' : 'left:20px',
+        'z-index:2147483647',
+        'display:inline-flex',
+      ].join(';');
+      /* move button into wrapper */
+      button.style.position = 'relative';
+      button.style.bottom = '';
+      button.style.right = '';
+      button.style.left = '';
+      button.style.zIndex = '';
+      wrapper.appendChild(button);
+      wrapper.appendChild(badge);
+      document.body.appendChild(wrapper);
+    }
+    badge.innerText = String(count);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { badge.style.transform = 'scale(1)'; });
+    });
+  }
+
+  function hideBadge() {
+    if (!badge) return;
+    badge.style.transform = 'scale(0)';
+    unread = 0;
+  }
+
+  if (greetingParam) showTooltip(greetingParam);
+
+  /* proactive message fires after delay if widget not already opened */
+  if (proactiveParam) {
+    setTimeout(function() {
+      if (open) return;
+      unread = 1;
+      showBadge(1);
+      showTooltip(proactiveParam);
+      /* pulse animation on button */
+      button.style.animation = 'rep-pulse 1.4s ease infinite';
+      if (!document.getElementById('rep-ai-style')) {
+        var style = document.createElement('style');
+        style.id = 'rep-ai-style';
+        style.textContent = '@keyframes rep-pulse{0%,100%{box-shadow:' + ${JSON.stringify(buttonShadow)} + '}50%{box-shadow:' + ${JSON.stringify(buttonShadow)} + ',0 0 0 8px rgba(239,68,68,0.15);}}';
+        document.head.appendChild(style);
+      }
+    }, proactiveDelay * 1000);
+  }
+
   /* ---- open / close logic ---- */
   var open = false;
   button.addEventListener('click', function () {
@@ -204,6 +297,10 @@ export async function GET(request: Request) {
           iframe.style.transform = 'translateY(0) scale(1)';
         });
       });
+      /* clear unread state */
+      hideBadge();
+      dismissTooltip();
+      button.style.animation = '';
     } else {
       iframe.style.opacity = '0';
       iframe.style.transform = 'translateY(8px) scale(0.97)';
@@ -217,17 +314,13 @@ export async function GET(request: Request) {
     } else if (styleParam === 'icon') {
       button.innerHTML = open ? closeSVG : chatSVG;
     }
-
-    /* dismiss tooltip on first open */
-    if (tooltip && open) {
-      tooltip.style.opacity = '0';
-      tooltip.style.transform = 'translateY(4px)';
-      setTimeout(function() { if (tooltip) { tooltip.remove(); tooltip = null; } }, 200);
-    }
   });
 
+  /* only append button directly if no proactive (wrapper handles it otherwise) */
+  if (!proactiveParam) {
+    document.body.appendChild(button);
+  }
   document.body.appendChild(iframe);
-  document.body.appendChild(button);
 })();`;
 
   return new NextResponse(script, {
