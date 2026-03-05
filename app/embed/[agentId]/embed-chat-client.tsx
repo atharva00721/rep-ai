@@ -151,8 +151,8 @@ export function EmbedChatClient({ agentId, agentName = "AI Assistant", avatarUrl
         <div className="flex flex-col min-w-0">
           <span className="font-semibold text-sm truncate">{agentName}</span>
           {roleLabel ? <span className="text-xs text-muted-foreground truncate">{roleLabel}</span> : (
-            <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-              <span className="size-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
+            <span className="flex items-center gap-1 text-xs text-green-500 font-medium">
+              <span className="size-1.5 rounded-full bg-green-400 inline-block animate-pulse" />
               Online
             </span>
           )}
