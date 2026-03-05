@@ -7,53 +7,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { productFaqs } from "@/lib/structured-data";
+import { plans } from "@/lib/billingsdk-config";
 
-const PLANS = [
-    {
-        id: "free",
-        name: "Free",
-        price: "$0",
-        description: "Perfect for students and job seekers looking to stand out.",
-        features: [
-            "1 AI Portfolio",
-            "1 AI Agent Clone",
-            "150 AI messages/month",
-            "5 lead captures/month",
-            "Standard templates",
-        ],
-        buttonText: "Upgrade to Free",
-    },
-    {
-        id: "pro",
-        name: "Pro",
-        price: "$24",
-        description: "For freelancers and creators scaling their pipeline.",
-        features: [
-            "3 AI Portfolios",
-            "3 AI Agents",
-            "2,000 AI messages/month",
-            "Unlimited lead captures",
-            "Google Calendar integration",
-            "Custom domain",
-        ],
-        buttonText: "Upgrade to Pro",
-        highlight: true,
-    },
-    {
-        id: "business",
-        name: "Agency",
-        price: "$79",
-        description: "Built for agencies and consultants managing multiple brands.",
-        features: [
-            "10 AI Portfolios",
-            "10 AI Agents",
-            "15,000 AI messages/month",
-            "Everything in Pro",
-            "Priority support",
-        ],
-        buttonText: "Go Agency",
-    },
-];
+const PLANS = plans.map((plan) => ({
+    id: plan.id,
+    name: plan.title,
+    price: `${plan.currency ?? "$"}${plan.monthlyPrice}`,
+    description: plan.description,
+    features: plan.features.map((feature) => feature.name),
+    buttonText: plan.buttonText,
+    highlight: plan.highlight,
+}));
 
 export function PricingClient({ currentPlan }: { currentPlan: string }) {
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
