@@ -54,7 +54,7 @@ export function AgentClient({ agent, agentId, portfolioHandle, hasContent, isPor
   const [widgetStyle, setWidgetStyle] = useState<"pill" | "icon">("icon");
   const [widgetGreeting, setWidgetGreeting] = useState("Need help?");
   const [widgetShadow, setWidgetShadow] = useState<"none" | "sm" | "md" | "lg">("md");
-  const [widgetRadius, setWidgetRadius] = useState<"full" | "md" | "sm">("full");
+  const [widgetRadius, setWidgetRadius] = useState<"full" | "md" | "sm" | "none">("full");
 
   const { config, chatMessages, chatInput, isChatLoading, setConfig, addChatMessage, clearChatMessages, setChatInput, setIsChatLoading, resetConfig } = useAgentStore();
 

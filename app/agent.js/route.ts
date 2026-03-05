@@ -22,8 +22,8 @@ function sanitizeShadow(value: string | null): "none" | "sm" | "md" | "lg" {
   return "md";
 }
 
-function sanitizeRadius(value: string | null): "full" | "md" | "sm" {
-  if (value === "md" || value === "sm") return value;
+function sanitizeRadius(value: string | null): "full" | "md" | "sm" | "none" {
+  if (value === "md" || value === "sm" || value === "none") return value;
   return "full";
 }
 
@@ -38,12 +38,14 @@ const RADIUS_MAP_ICON: Record<string, string> = {
   full: "9999px",
   md: "18px",
   sm: "10px",
+  none: "0px",
 };
 
 const RADIUS_MAP_PILL: Record<string, string> = {
   full: "9999px",
   md: "14px",
   sm: "8px",
+  none: "0px",
 };
 
 export async function GET(request: Request) {

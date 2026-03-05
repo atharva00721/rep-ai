@@ -20,12 +20,14 @@ const RADIUS_MAP_ICON: Record<string, string> = {
   full: "9999px",
   md: "18px",
   sm: "10px",
+  none: "0px",
 };
 
 const RADIUS_MAP_PILL: Record<string, string> = {
   full: "9999px",
   md: "14px",
   sm: "8px",
+  none: "0px",
 };
 
 interface AgentWidgetTabProps {
@@ -44,7 +46,7 @@ interface AgentWidgetTabProps {
   widgetStyle: "pill" | "icon";
   widgetGreeting: string;
   widgetShadow: "none" | "sm" | "md" | "lg";
-  widgetRadius: "full" | "md" | "sm";
+  widgetRadius: "full" | "md" | "sm" | "none";
   widgetAvatarUrl: string;
   setWidgetLabel: (value: string) => void;
   setWidgetPosition: (value: "bottom-right" | "bottom-left") => void;
@@ -54,7 +56,7 @@ interface AgentWidgetTabProps {
   setWidgetStyle: (value: "pill" | "icon") => void;
   setWidgetGreeting: (value: string) => void;
   setWidgetShadow: (value: "none" | "sm" | "md" | "lg") => void;
-  setWidgetRadius: (value: "full" | "md" | "sm") => void;
+  setWidgetRadius: (value: "full" | "md" | "sm" | "none") => void;
 }
 
 function WidgetPreview({ widgetStyle, widgetColor, widgetPosition, widgetGreeting, widgetAvatarUrl, widgetLabel, widgetShadow, widgetRadius }: {
@@ -272,12 +274,13 @@ export function AgentWidgetTab(props: AgentWidgetTabProps) {
                   {/* Corner radius */}
                   <div className="space-y-2">
                     <Label className="font-semibold">Corner Style</Label>
-                    <Select value={widgetRadius} onValueChange={(v) => setWidgetRadius(v as "full" | "md" | "sm")}>
+                    <Select value={widgetRadius} onValueChange={(v) => setWidgetRadius(v as "full" | "md" | "sm" | "none")}>
                       <SelectTrigger className="w-full shadow-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="full">Circle / Pill</SelectItem>
                         <SelectItem value="md">Rounded</SelectItem>
                         <SelectItem value="sm">Slightly Rounded</SelectItem>
+                        <SelectItem value="none">No Rounding</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
