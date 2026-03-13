@@ -48,4 +48,4 @@ tsc.log
 
 # npm lockfile (project uses bun)
 package-lock.json
-bun.lock
+bun.lock.env.local
